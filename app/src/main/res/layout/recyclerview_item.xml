@@ -8,6 +8,9 @@
         android:id="@+id/textView"
         style="@style/url_title"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@android:color/holo_orange_light" />
+        android:layout_height="47dp"
+        android:layout_gravity="center"
+        android:background="?attr/colorSecondaryVariant"
+        android:gravity="center"
+        android:textColor="@color/design_default_color_background" />
 </LinearLayout>
