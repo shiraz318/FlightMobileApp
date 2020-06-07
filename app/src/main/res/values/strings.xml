@@ -1,6 +1,10 @@
 <resources>
     <string name="app_name">FlightMobileApp</string>
-    <string name="shiraz">Shirazzzzz</string>
+    <string name="shiraz">Shiraz And Nili</string>
     <string name="connect">Connect</string>
+    <string name="url_text">Type URL</string>
     <string name="back">Back</string>
+    <string name="empty_not_saved">No input</string>
+    <string name="not_empty">input not empty</string>
+    <string name="inside">insideActivityChange</string>
 </resources>

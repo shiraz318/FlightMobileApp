@@ -1,0 +1,20 @@
+package com.example.flightmobileapp
+
+import androidx.lifecycle.LiveData
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+
+@Dao
+interface URLDao {
+
+    @Query("SELECT * from url_table ORDER BY time ASC")
+    fun getAlphabetizedWords(): LiveData<List<URL>>
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insert(url: URL)
+
+    @Query("DELETE FROM url_table")
+    suspend fun deleteAll()
+}
