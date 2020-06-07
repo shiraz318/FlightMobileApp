@@ -12,5 +12,7 @@
         android:layout_gravity="center"
         android:background="?attr/colorSecondaryVariant"
         android:gravity="center"
-        android:textColor="@color/design_default_color_background" />
+        android:clickable="true"
+        android:textColor="@color/design_default_color_background"
+        android:focusable="true" />
 </LinearLayout>

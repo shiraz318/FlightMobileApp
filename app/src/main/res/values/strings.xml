@@ -7,4 +7,5 @@
     <string name="empty_not_saved">No input</string>
     <string name="not_empty">input not empty</string>
     <string name="inside">insideActivityChange</string>
+    <string name="clicked">the row was clicked</string>
 </resources>
