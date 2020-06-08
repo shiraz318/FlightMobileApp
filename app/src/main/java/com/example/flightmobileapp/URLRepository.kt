@@ -1,4 +1,5 @@
 package com.example.flightmobileapp
+
 import androidx.lifecycle.LiveData
 
 
@@ -8,9 +9,25 @@ class URLRepository(private val urlDao: URLDao) {
 
     // Room executes all queries on a separate thread.
     // Observed LiveData will notify the observer when the data has changed.
-    val allWords: LiveData<List<URL>> = urlDao.getAlphabetizedWords()
+    val allWords: LiveData<List<URLItem>> = urlDao.getAlphabetizedWords()
 
-    suspend fun insert(url: URL) {
+    suspend fun insert(url: URLItem) {
         urlDao.insert(url)
+    }
+    suspend fun increaseAll() {
+        urlDao.increaseAll()
+    }
+    suspend fun deleteExtra() {
+        urlDao.deleteExtra()
+    }
+
+     suspend fun getUrlByPosition(position: Int): String {
+        return urlDao.getUrlByPosition(position)
+    }
+    suspend fun updatePosition(changedItemPosition: Int) {
+        urlDao.updatePosition(changedItemPosition)
+    }
+    suspend fun initPosition(url: String) {
+        urlDao.initPosition(url)
     }
 }

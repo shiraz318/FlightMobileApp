@@ -1,6 +1,8 @@
 package com.example.flightmobileapp
 
+import android.content.Intent
 import android.os.Bundle
+import android.text.Editable
 import android.text.TextUtils
 import android.view.View
 import android.widget.Button
@@ -13,6 +15,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.room.Room
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity() {
     lateinit var connectButton: Button
@@ -21,18 +25,16 @@ class MainActivity : AppCompatActivity() {
     lateinit var specificUrl: TextView
     private lateinit var urlViewModel: URLViewModel
 
-    // @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        //setContentView(R.layout.recyclerview_item)
 
         inputUrl = findViewById(R.id.input_text)
         connectButton = findViewById(R.id.connect_button)
-        urlItem = findViewById(R.id.recyclerview)
-        connectButton.setOnClickListener { connect(inputUrl) }
+        // urlItem = findViewById(R.id.recyclerview)
 
-        urlItem.setOnClickListener { clickMe() }
+        connectButton.setOnClickListener { connect(inputUrl) }
+        // urlItem.setOnClickListener { clickMe() }
 
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerview)
         val adapter = URLListAdapter(this)
@@ -45,23 +47,25 @@ class MainActivity : AppCompatActivity() {
             words?.let { adapter.setUrls(it) }
         })
         recyclerView.addOnItemTouchListener(
-            RecyclerItemClickListenr(
-                this,
-                recyclerView,
+            RecyclerItemClickListenr(this, recyclerView,
                 object : RecyclerItemClickListenr.OnItemClickListener {
-
                     override fun onItemClick(view: View, position: Int) {
-                        if (position == 0) {
+                        var url = urlViewModel.getUrlByPosition(position)
+                        urlViewModel.updatePosition(position)
+                        if (url == null) {
                             Toast.makeText(
                                 applicationContext,
-                                "first item",
-                                Toast.LENGTH_LONG
+                                R.string.error_get_url_by_position,
+                                Toast.LENGTH_SHORT
                             ).show()
-                        }
-                        if (position == 1) {
+                        } else {
+
+                            inputUrl.setText(url)
+
+                            urlViewModel.initPosition(url)
                             Toast.makeText(
                                 applicationContext,
-                                "second item",
+                                url,
                                 Toast.LENGTH_LONG
                             ).show()
                         }
@@ -78,37 +82,6 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-//    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-//        super.onActivityResult(requestCode, resultCode, data)
-//        Toast.makeText(
-//            applicationContext,
-//            R.string.inside,
-//            Toast.LENGTH_LONG
-//        ).show()
-//        if (requestCode == newURLActivityRequestCode && resultCode == Activity.RESULT_OK) {
-//            Toast.makeText(
-//                applicationContext,
-//                R.string.inside,
-//                Toast.LENGTH_LONG
-//            ).show()
-//            data?.getStringExtra(MainActivity.EXTRA_REPLY)?.let {
-//                val word = URL(it, "1")
-//                urlViewModel.insert(word)
-//            }
-//        } else {
-//            Toast.makeText(
-//                applicationContext,
-//                R.string.empty_not_saved,
-//                Toast.LENGTH_LONG
-//            ).show()
-//        }
-//    }
-
-//    companion object {
-//        const val EXTRA_REPLY = "com.example.android.urllistsql.REPLY"
-//    }
-
-    //  @RequiresApi(Build.VERSION_CODES.O)
     private fun connect(inputUrl: EditText) {
         // Server stuff.
 
@@ -121,33 +94,13 @@ class MainActivity : AppCompatActivity() {
         } else {
 
             val url = inputUrl.text.toString()
-            val word = URL(url, "1")
+            val word = URLItem(url, 0)
+            urlViewModel.increaseAll()
             urlViewModel.insert(word)
+            urlViewModel.deleteExtra()
         }
 
         // If we connected successfully - go to the next activity.
-        //startActivity(Intent(this, ControlActivity::class.java))
+        startActivity(Intent(this, ControlActivity::class.java))
     }
-
-    private fun Click() {
-        val url = URL("shiraz", "2");
-        Toast.makeText(
-            applicationContext,
-            R.string.clicked,
-            Toast.LENGTH_LONG
-        ).show()
-
-        //inputUrl.text = url.url as Editable
-        //inputUrl.setText(url.url)
-
-    }
-
-    fun clickMe() {
-        Toast.makeText(
-            applicationContext,
-            R.string.clicked,
-            Toast.LENGTH_LONG
-        ).show()
-    }
-
 }

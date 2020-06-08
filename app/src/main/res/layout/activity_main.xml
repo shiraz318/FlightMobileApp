@@ -44,7 +44,6 @@
         android:layout_marginBottom="118dp"
         android:clickable="true"
         android:focusable="true"
-        android:onClick="clickMe"
         android:padding="@dimen/big_padding"
         app:layout_constraintBottom_toTopOf="@+id/connect_button"
         app:layout_constraintHorizontal_bias="0.0"

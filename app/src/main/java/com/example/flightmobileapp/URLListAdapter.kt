@@ -13,7 +13,7 @@ class URLListAdapter internal constructor(
 ) : RecyclerView.Adapter<URLListAdapter.URLViewHolder>() {
 
     private val inflater: LayoutInflater = LayoutInflater.from(context)
-    private var urls = emptyList<URL>() // Cached copy of words
+    private var urls = emptyList<URLItem>() // Cached copy of words
 
     inner class URLViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val urlItemView: TextView = itemView.findViewById(R.id.textView)
@@ -29,7 +29,7 @@ class URLListAdapter internal constructor(
         holder.urlItemView.text = current.url
     }
 
-    internal fun setUrls(urls: List<URL>) {
+    internal fun setUrls(urls: List<URLItem>) {
         this.urls = urls
         notifyDataSetChanged()
     }

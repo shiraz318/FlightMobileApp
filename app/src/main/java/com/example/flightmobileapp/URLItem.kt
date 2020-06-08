@@ -6,9 +6,13 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "url_table")
 
-class URL(
-    @PrimaryKey @ColumnInfo(name = "url") val url: String,
-    @ColumnInfo(name = "time") val time: String
+class URLItem(
+    @PrimaryKey
+    @ColumnInfo(name = "url")
+    val url: String,
+    @ColumnInfo(name = "position")
+    val position: Int = 0
+
 ) {
 
 }

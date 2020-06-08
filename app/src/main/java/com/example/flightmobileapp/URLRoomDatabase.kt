@@ -4,13 +4,14 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 
 // Annotates class to be a Room Database with a table (entity) of the URL class
-@Database(entities = arrayOf(URL::class), version = 1, exportSchema = false)
+@Database(entities = arrayOf(URLItem::class), version = 4, exportSchema = false)
 abstract class URLRoomDatabase : RoomDatabase() {
 
     abstract fun urlDao(): URLDao
@@ -30,11 +31,29 @@ abstract class URLRoomDatabase : RoomDatabase() {
                 return tempInstance
             }
             synchronized(this) {
+//                val MIGRATION_1 = object : Migration(1, 2) {
+//                    override fun migrate(database: SupportSQLiteDatabase) {
+//                        database.execSQL(
+//                            "CREATE TABLE `url_database` (`url` TEXT, `position` INTEGER, " +
+//                                    "PRIMARY KEY(`url`))"
+//                        )
+//                    }
+//                }
+//                val MIGRATION_2_3 = object : Migration(2, 3) {
+//                    override fun migrate(database: SupportSQLiteDatabase) {
+//                        //database.execSQL("ALTER TABLE Book ADD COLUMN pub_year INTEGER")
+//                        database.execSQL(
+//                            "CREATE TABLE `url_database` (`url` TEXT, `position` INTEGER, " +
+//                                    "PRIMARY KEY(`url`))"
+//                        )
+//                    }
+//                }
+
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     URLRoomDatabase::class.java,
                     "url_database"
-                ).addCallback(WordDatabaseCallback(scope)).build()
+                ).addCallback(WordDatabaseCallback(scope)).fallbackToDestructiveMigration().build()
                 INSTANCE = instance
                 return instance
             }
@@ -57,7 +76,7 @@ abstract class URLRoomDatabase : RoomDatabase() {
 
         suspend fun populateDatabase(urlDao: URLDao) {
             // Delete all content here.
-            //urlDao.deleteAll()
+            urlDao.deleteAll()
             urlDao.getAlphabetizedWords()
         }
     }
