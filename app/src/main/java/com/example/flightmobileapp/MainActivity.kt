@@ -12,6 +12,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.room.Room
 
 class MainActivity : AppCompatActivity() {
     lateinit var connectButton: Button
@@ -29,13 +30,10 @@ class MainActivity : AppCompatActivity() {
         inputUrl = findViewById(R.id.input_text)
         connectButton = findViewById(R.id.connect_button)
         urlItem = findViewById(R.id.recyclerview)
-        //specificUrl = findViewById<RecyclerView>(R.id.textView)
-//
         connectButton.setOnClickListener { connect(inputUrl) }
 
         urlItem.setOnClickListener { clickMe() }
-//
-//
+
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerview)
         val adapter = URLListAdapter(this)
         recyclerView.adapter = adapter
@@ -53,11 +51,20 @@ class MainActivity : AppCompatActivity() {
                 object : RecyclerItemClickListenr.OnItemClickListener {
 
                     override fun onItemClick(view: View, position: Int) {
-                        Toast.makeText(
-                            applicationContext,
-                            R.string.clicked,
-                            Toast.LENGTH_LONG
-                        ).show()
+                        if (position == 0) {
+                            Toast.makeText(
+                                applicationContext,
+                                "first item",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                        if (position == 1) {
+                            Toast.makeText(
+                                applicationContext,
+                                "second item",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
                     }
 
                     override fun onItemLongClick(view: View?, position: Int) {
