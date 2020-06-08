@@ -59,7 +59,6 @@ class MainActivity : AppCompatActivity() {
                                 Toast.LENGTH_SHORT
                             ).show()
                         } else {
-
                             inputUrl.setText(url)
 
                             urlViewModel.initPosition(url)
