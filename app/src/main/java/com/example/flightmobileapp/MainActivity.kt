@@ -1,8 +1,9 @@
 package com.example.flightmobileapp
 
 import android.content.Intent
+import android.graphics.Canvas
+import android.graphics.Color
 import android.os.Bundle
-import android.text.Editable
 import android.text.TextUtils
 import android.view.View
 import android.widget.Button
@@ -14,9 +15,6 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.room.Room
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity() {
     lateinit var connectButton: Button
@@ -42,9 +40,9 @@ class MainActivity : AppCompatActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
 
         urlViewModel = ViewModelProvider(this).get(URLViewModel::class.java)
-        urlViewModel.allUrls.observe(this, Observer { words ->
+        urlViewModel.allUrls.observe(this, Observer { urls ->
             // Update the cached copy of the words in the adapter.
-            words?.let { adapter.setUrls(it) }
+            urls?.let { adapter.setUrls(it) }
         })
         recyclerView.addOnItemTouchListener(
             RecyclerItemClickListenr(this, recyclerView,
@@ -53,20 +51,23 @@ class MainActivity : AppCompatActivity() {
                         var url = urlViewModel.getUrlByPosition(position)
                         urlViewModel.updatePosition(position)
                         if (url == null) {
+
+
+                            val toast: Toast =
                             Toast.makeText(
                                 applicationContext,
                                 R.string.error_get_url_by_position,
                                 Toast.LENGTH_SHORT
-                            ).show()
+                            )
+                            val toastView = toast.view
+                            toastView.setBackgroundColor(Color.GRAY)
+//                            val toastView: View = toast.view
+//                            toastView.setBackgroundResource(R.color.colorPrimary);
+                            toast.show();
                         } else {
                             inputUrl.setText(url)
-
                             urlViewModel.initPosition(url)
-                            Toast.makeText(
-                                applicationContext,
-                                url,
-                                Toast.LENGTH_LONG
-                            ).show()
+
                         }
                     }
 
@@ -83,13 +84,22 @@ class MainActivity : AppCompatActivity() {
 
     private fun connect(inputUrl: EditText) {
         // Server stuff.
-
         if (TextUtils.isEmpty(inputUrl.text)) {
-            Toast.makeText(
-                applicationContext,
-                R.string.empty_not_saved,
-                Toast.LENGTH_LONG
-            ).show()
+            val toast: Toast =
+                Toast.makeText(
+                    applicationContext,
+                    R.string.empty_not_saved,
+                    Toast.LENGTH_SHORT
+                )
+            val toastView = toast.view
+            toastView.setBackgroundColor(Color.GRAY)
+            toast.show();
+//
+//            Toast.makeText(
+//                applicationContext,
+//                R.string.empty_not_saved,
+//                Toast.LENGTH_LONG
+//            ).show()
         } else {
 
             val url = inputUrl.text.toString()
