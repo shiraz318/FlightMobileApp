@@ -58,14 +58,15 @@ class JoystickView @JvmOverloads constructor(
     // A function that updates the values of the knob according to whether it is in/on a circle or not.
     private fun updateKnobPosition(x: Float, y: Float): PointF {
         val powOfXY: Float = x.toDouble().pow(2.0).toFloat() + y.toDouble().pow(2.0).toFloat()
-        val powDiameterOfBase: Float = (OUTER_RADIUS * 2).toDouble().pow(2.0).toFloat()
+        val powDiameterOfBase: Float = (OUTER_RADIUS * 4).toDouble().pow(2.0).toFloat()
         // The coordinates are in or on the circle.
         if (powOfXY <= powDiameterOfBase) {
             // this coordinates are good.
+            Log.d("TAG", "coordinates are good")
             return PointF(x, y);
         }
         // Else powOfXY > powDiameterOfBase - thats mean that the coordinates are out of the circle.
-        return closestIntersection(OUTER_RADIUS, PointF(-x, -y))
+        return closestIntersection(radius, PointF(-x, -y))
     }        // Function that returns the closest intersection to lineEnd point.
 
     private fun closestIntersection(radius: Float, lineEnd: PointF): PointF {
@@ -136,8 +137,10 @@ class JoystickView @JvmOverloads constructor(
 //        }
         Log.d("TAG", "x:")
         Log.d("TAG", center.x.toString())
-        Log.d("TAG", "y")
+        Log.d("TAG", "y:")
         Log.d("TAG", center.y.toString())
+        Log.d("TAG", "center:")
+        Log.d("TAG", initialCenter.toString())
         //center = PointF(newX, newY)
         // Will render again the screen.
         invalidate()
