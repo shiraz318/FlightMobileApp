@@ -11,7 +11,7 @@ import java.lang.System.out
 import kotlin.math.pow
 import kotlin.math.sqrt
 
-private const val OUTER_RADIUS = 100.0f
+private const val OUTER_RADIUS = 330.0f
 
 class JoystickView @JvmOverloads constructor(
     context: Context,
@@ -19,6 +19,8 @@ class JoystickView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
     private var radius = 0.0f                   // Radius of the circle.
+    private var startX = 0.0f                   // Radius of the circle.
+    private var startY = 0.0f                   // Radius of the circle.
     private var center: PointF = PointF()
     private var initialCenter: PointF = PointF()
 
@@ -58,22 +60,24 @@ class JoystickView @JvmOverloads constructor(
     // A function that updates the values of the knob according to whether it is in/on a circle or not.
     private fun updateKnobPosition(x: Float, y: Float): PointF {
         val powOfXY: Float = x.toDouble().pow(2.0).toFloat() + y.toDouble().pow(2.0).toFloat()
-        val powDiameterOfBase: Float = (OUTER_RADIUS * 4).toDouble().pow(2.0).toFloat()
+        val powDiameterOfBase: Float =
+            (OUTER_RADIUS + initialCenter.x).toDouble().pow(2.0).toFloat()
         // The coordinates are in or on the circle.
         if (powOfXY <= powDiameterOfBase) {
             // this coordinates are good.
             Log.d("TAG", "coordinates are good")
             return PointF(x, y);
         }
+        Log.d("TAG", "coordinates are bad")
         // Else powOfXY > powDiameterOfBase - thats mean that the coordinates are out of the circle.
-        return closestIntersection(radius, PointF(-x, -y))
+        return closestIntersection(PointF(-x, -y))
     }        // Function that returns the closest intersection to lineEnd point.
 
-    private fun closestIntersection(radius: Float, lineEnd: PointF): PointF {
+    private fun closestIntersection(lineEnd: PointF): PointF {
         var intersection1: PointF
         var intersection2: PointF
         // Find the intersections point.
-        var points: Array<PointF> = findLineCircleIntersections(radius, lineEnd)
+        var points: Array<PointF> = calculateIntersections(lineEnd)
         intersection1 = points[0]
         intersection2 = points[1]
         var dist1: Float = sqrt(
@@ -92,7 +96,7 @@ class JoystickView @JvmOverloads constructor(
     }
 
     // Find the points of intersection.
-    private fun findLineCircleIntersections(radius: Float, point2: PointF): Array<PointF> {
+    private fun calculateIntersections(point2: PointF): Array<PointF> {
         var intersection1: PointF
         var intersection2: PointF
         var a: Float
@@ -109,8 +113,7 @@ class JoystickView @JvmOverloads constructor(
         // Two solutions.
         t = ((sqrt(delta)) / (2 * a));
         intersection1 = PointF(t * dx, t * dy);
-        t = ((-sqrt(delta)) / (2 * a));
-        intersection2 = PointF(t * dx, t * dy);
+        intersection2 = PointF(-t * dx, -t * dy);
         return arrayOf(intersection1, intersection2)
     }
 
@@ -120,28 +123,47 @@ class JoystickView @JvmOverloads constructor(
         //Log.d("TAG", "in touch move")
         var newX: Float = x
         var newY: Float = y
-        var limit: Float = OUTER_RADIUS - radius
-
-        center = updateKnobPosition(x, y)
-
-//        // Update position of the drawn items.
-//        if (x + radius > OUTER_RADIUS) {
-//            newX = limit
-//        } else if (x - radius < -OUTER_RADIUS) {
-//            newX = -limit
-//        }
-//        if (y + radius > OUTER_RADIUS) {
-//            newY = limit
-//        } else if (y - radius < -OUTER_RADIUS) {
-//            newY = -limit
-//        }
+        var limit: Float = 330.0f
         Log.d("TAG", "x:")
         Log.d("TAG", center.x.toString())
         Log.d("TAG", "y:")
         Log.d("TAG", center.y.toString())
-        Log.d("TAG", "center:")
-        Log.d("TAG", initialCenter.toString())
-        //center = PointF(newX, newY)
+        //       center = updateKnobPosition(x, y)
+//        var x1 = x
+//        var y1 = y
+//        if (x > initialCenter.x) {
+//            x1 = x + radius
+//        }else {
+//            x1 = x - radius
+//        }
+//        if (y > initialCenter.y) {
+//            y1 = y + radius
+//        }else {
+//            y1 = y - radius
+//        }
+//        val a = x1.toDouble().pow(2.0).toFloat() + y1.toDouble().pow(2.0).toFloat()
+//        val b: Float = (OUTER_RADIUS + initialCenter.x).toDouble().pow(2.0).toFloat()
+//        // The coordinates are in or on the circle.
+//        if (a > b) {
+
+
+        if (newX + radius > limit + initialCenter.x) {
+            newX = limit + initialCenter.x - radius
+        } else if (newX - radius < -limit + initialCenter.x) {
+            newX = -limit + initialCenter.x + radius
+        }
+        if (newY + radius > limit + initialCenter.y) {
+            newY = limit + initialCenter.y - radius
+        } else if (newY - radius < -limit + initialCenter.x) {
+            newY = -limit + initialCenter.y + radius
+        }
+
+
+//        }
+        // Update position of the drawn items.
+
+
+        center = PointF(newX, newY)
         // Will render again the screen.
         invalidate()
 
@@ -156,13 +178,21 @@ class JoystickView @JvmOverloads constructor(
         invalidate()
     }
 
+    private fun updateCurrent(x: Float, y: Float): Boolean {
+
+        startX = x
+        startY = y
+
+        return true
+    }
+
     override fun onTouchEvent(event: MotionEvent?): Boolean {
 
         if (event == null) {
             return true
         }
         when (event?.action) {
-            MotionEvent.ACTION_DOWN -> return true
+            MotionEvent.ACTION_DOWN -> return updateCurrent(event.x, event.y)
             MotionEvent.ACTION_MOVE -> touchMove(event.x, event.y)
             MotionEvent.ACTION_UP -> resetCenter()
         }
