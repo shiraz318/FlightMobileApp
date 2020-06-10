@@ -19,8 +19,8 @@ class JoystickView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
     private var radius = 0.0f                   // Radius of the circle.
-    private var startX = 0.0f                   // Radius of the circle.
-    private var startY = 0.0f                   // Radius of the circle.
+    private var startX = 0.0f
+    private var startY = 0.0f
     private var center: PointF = PointF()
     private var initialCenter: PointF = PointF()
 
@@ -56,23 +56,6 @@ class JoystickView @JvmOverloads constructor(
 
     }
 
-
-    // A function that updates the values of the knob according to whether it is in/on a circle or not.
-    private fun updateKnobPosition(x: Float, y: Float): PointF {
-        val powOfXY: Float = x.toDouble().pow(2.0).toFloat() + y.toDouble().pow(2.0).toFloat()
-        val powDiameterOfBase: Float =
-            (OUTER_RADIUS + initialCenter.x).toDouble().pow(2.0).toFloat()
-        // The coordinates are in or on the circle.
-        if (powOfXY <= powDiameterOfBase) {
-            // this coordinates are good.
-            Log.d("TAG", "coordinates are good")
-            return PointF(x, y);
-        }
-        Log.d("TAG", "coordinates are bad")
-        // Else powOfXY > powDiameterOfBase - thats mean that the coordinates are out of the circle.
-        return closestIntersection(PointF(-x, -y))
-    }        // Function that returns the closest intersection to lineEnd point.
-
     private fun closestIntersection(lineEnd: PointF): PointF {
         var intersection1: PointF
         var intersection2: PointF
@@ -81,18 +64,23 @@ class JoystickView @JvmOverloads constructor(
         intersection1 = points[0]
         intersection2 = points[1]
         var dist1: Float = sqrt(
-            intersection1.x.toDouble().pow(2.0) +
-                    intersection1.y.toDouble().pow(2.0)
-        ).toFloat()
+            ((intersection1.x - lineEnd.x) * (intersection1.x - lineEnd.x)) +
+                    ((intersection1.y - lineEnd.y) * (intersection1.y - lineEnd.y))
+        )
 
         var dist2: Float = sqrt(
-            intersection2.x.toDouble().pow(2.0) +
-                    intersection2.y.toDouble().pow(2.0)
-        ).toFloat()
+            ((intersection2.x - lineEnd.x) * (intersection2.x - lineEnd.x)) +
+                    ((intersection2.y - lineEnd.y) * (intersection2.y - lineEnd.y))
+        )
         // Checking which point is the closest.
+        var point: PointF
         if (dist1 < dist2) {
-            return intersection1; }
-        return intersection2;
+            point = intersection1;
+        } else {
+            point = intersection2
+        }
+
+        return point;
     }
 
     // Find the points of intersection.
@@ -103,67 +91,41 @@ class JoystickView @JvmOverloads constructor(
         var delta: Float
         var t: Float
 
-        var dx: Float = point2.x;
-        var dy: Float = point2.y;
+        var dx: Float = point2.x - initialCenter.x
+        var dy: Float = point2.y - initialCenter.y
         // Calculate A,C for line equation (there is no need to calculate B because it will always be zero).
-        a = dx * dx + dy * dy;
+        a = dx * dx + dy * dy
         var c: Float = -radius * radius;
         // Delta for finding solutions.
         delta = -4 * a * c;
         // Two solutions.
         t = ((sqrt(delta)) / (2 * a));
-        intersection1 = PointF(t * dx, t * dy);
-        intersection2 = PointF(-t * dx, -t * dy);
+        intersection1 = PointF(initialCenter.x + t * dx, initialCenter.y + t * dy);
+        intersection2 = PointF(initialCenter.x - t * dx, initialCenter.y - t * dy);
         return arrayOf(intersection1, intersection2)
+    }
+
+    private fun updatePosition(x: Float, y: Float): PointF {
+        var isOut = false
+        if (y < initialCenter.y - OUTER_RADIUS + radius) {
+            isOut = true;
+        } else if (y > OUTER_RADIUS + initialCenter.y - radius) {
+            isOut = true
+        }
+        if (x < initialCenter.x - OUTER_RADIUS + radius) {
+            isOut = true
+        } else if (x > OUTER_RADIUS + initialCenter.x - radius) {
+            isOut = true
+        }
+        if (!isOut) {
+            return PointF(x, y)
+        }
+        return closestIntersection(PointF(x, y))
     }
 
     private fun touchMove(x: Float, y: Float) {
 
-        //canvas.drawCircle(center.x, center.y, radius, paint)
-        //Log.d("TAG", "in touch move")
-        var newX: Float = x
-        var newY: Float = y
-        var limit: Float = 330.0f
-        Log.d("TAG", "x:")
-        Log.d("TAG", center.x.toString())
-        Log.d("TAG", "y:")
-        Log.d("TAG", center.y.toString())
-        //       center = updateKnobPosition(x, y)
-//        var x1 = x
-//        var y1 = y
-//        if (x > initialCenter.x) {
-//            x1 = x + radius
-//        }else {
-//            x1 = x - radius
-//        }
-//        if (y > initialCenter.y) {
-//            y1 = y + radius
-//        }else {
-//            y1 = y - radius
-//        }
-//        val a = x1.toDouble().pow(2.0).toFloat() + y1.toDouble().pow(2.0).toFloat()
-//        val b: Float = (OUTER_RADIUS + initialCenter.x).toDouble().pow(2.0).toFloat()
-//        // The coordinates are in or on the circle.
-//        if (a > b) {
-
-
-        if (newX + radius > limit + initialCenter.x) {
-            newX = limit + initialCenter.x - radius
-        } else if (newX - radius < -limit + initialCenter.x) {
-            newX = -limit + initialCenter.x + radius
-        }
-        if (newY + radius > limit + initialCenter.y) {
-            newY = limit + initialCenter.y - radius
-        } else if (newY - radius < -limit + initialCenter.x) {
-            newY = -limit + initialCenter.y + radius
-        }
-
-
-//        }
-        // Update position of the drawn items.
-
-
-        center = PointF(newX, newY)
+        center = updatePosition(x, y);
         // Will render again the screen.
         invalidate()
 
