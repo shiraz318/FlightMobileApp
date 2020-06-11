@@ -61,18 +61,18 @@
 
 
         android:id="@+id/connect_button"
-            android:layout_width="155dp"
-            android:layout_height="60dp"
-            android:layout_marginStart="14dp"
-            android:layout_marginLeft="14dp"
-            android:layout_marginTop="540dp"
-            android:layout_marginEnd="14dp"
-            android:layout_marginRight="14dp"
-            android:text="@string/connect"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/input_text"
-            app:layout_constraintTop_toTopOf="parent" />
+        android:layout_width="155dp"
+        android:layout_height="60dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="540dp"
+        android:layout_marginEnd="14dp"
+        android:layout_marginRight="14dp"
+        android:text="@string/connect"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/input_text"
+        app:layout_constraintTop_toTopOf="parent" />
 <!--        android:id="@+id/connect_button"-->
 <!--        android:layout_width="140dp"-->
 <!--        android:layout_height="60dp"-->
@@ -85,21 +85,22 @@
 
     <EditText
 
-            android:id="@+id/input_text"
-            android:layout_width="214dp"
-            android:layout_height="60dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginLeft="8dp"
-            android:layout_marginTop="550dp"
-            android:layout_marginEnd="10dp"
-            android:layout_marginRight="10dp"
-            android:ems="10"
-            android:inputType="textUri"
-            android:text="@string/url_text"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/connect_button"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+        android:id="@+id/input_text"
+        android:layout_width="214dp"
+        android:layout_height="60dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="550dp"
+        android:layout_marginBottom="7dp"
+        android:ems="10"
+        android:hint="@string/url_text"
+        android:inputType="textUri"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/connect_button"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 <!--        android:id="@+id/input_text"-->
 <!--        android:layout_width="220dp"-->
