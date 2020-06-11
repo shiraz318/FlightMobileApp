@@ -7,6 +7,11 @@ import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.widget.Toast
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import network.FlightApi
 import java.lang.System.out
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -131,7 +136,10 @@ class JoystickView @JvmOverloads constructor(
         return closestIntersection(PointF(x, y))
     }
 
+
     private fun touchMove(x: Float, y: Float) {
+
+        //trying()
 
         innerCenter = updatePosition(x, y);
         // Will render again the screen.
