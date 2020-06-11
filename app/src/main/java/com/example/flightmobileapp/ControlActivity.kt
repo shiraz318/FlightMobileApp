@@ -55,10 +55,10 @@ class ControlActivity : AppCompatActivity() {
                     Toast.LENGTH_SHORT
                 ).show()
             } catch (e: Exception) {
-               // textView.text = "Failure: ${e.message}"
+                textView.text = e.message
                 Toast.makeText(
                     applicationContext,
-                    R.string.error_get_url_by_position,
+                    e.message,
                     Toast.LENGTH_SHORT
                 ).show()
             }
