@@ -11,6 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import network.FlightApi
+import retrofit2.http.Header
 
 lateinit var textView: TextView
 
@@ -55,7 +56,7 @@ class ControlActivity : AppCompatActivity() {
                     Toast.LENGTH_SHORT
                 ).show()
             } catch (e: Exception) {
-                textView.text = e.message
+                textView.text = e.toString()
                 Toast.makeText(
                     applicationContext,
                     e.message,
