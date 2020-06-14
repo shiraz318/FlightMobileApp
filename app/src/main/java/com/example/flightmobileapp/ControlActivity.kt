@@ -1,97 +1,155 @@
 package com.example.flightmobileapp
 
-import androidx.appcompat.app.AppCompatActivity
+
+import android.graphics.BitmapFactory
 import android.os.Bundle
-import android.widget.TextView
+import android.widget.SeekBar
 import android.widget.Toast
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import androidx.appcompat.app.AppCompatActivity
+import com.google.gson.GsonBuilder
+import kotlinx.android.synthetic.main.activity_control.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
-import network.FlightApi
-import retrofit2.http.Header
+import network.FlightApiService
+import okhttp3.OkHttpClient
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
 
-lateinit var textView: TextView
 
 class ControlActivity : AppCompatActivity() {
 
     private var viewModelJob = Job()
     private var uiScope = CoroutineScope(Dispatchers.Main + viewModelJob)
-
+     private var lastThrottle:Float = 0.0f
+    private var lastRudder:Float = 0.0f
+    private var lastAileron:Float = 0.0f
+    private var lastElevator:Float = 0.0f
+    lateinit var throttleSeekBar: SeekBar
+    lateinit var rudderSeekBar: SeekBar
+    private lateinit var command: Command
+    lateinit var retrofit: Retrofit
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_control)
-        textView = findViewById(R.id.response)
+        throttleSeekBar = findViewById(R.id.throttle_slider)
+        rudderSeekBar = findViewById(R.id.rudder_slider)
+        initCommand()
+        var url = intent.getStringExtra("Url")
+        val gson = GsonBuilder().setLenient().create()
+//        retrofit = Retrofit.Builder().baseUrl(url)
+//            .addConverterFactory(GsonConverterFactory.create(gson)).build()
+        val httpClient = OkHttpClient.Builder()
+            .callTimeout(2, TimeUnit.MINUTES)
+            .connectTimeout(1, TimeUnit.MINUTES)
+            .readTimeout(40, TimeUnit.SECONDS)
+            .writeTimeout(40, TimeUnit.SECONDS)
+
+        val builder: Retrofit.Builder = Retrofit.Builder()
+            .baseUrl(url)
+            .addConverterFactory(GsonConverterFactory.create(gson))
+
+        builder.client(httpClient.build())
+
+        retrofit = builder.build()
+        sendCommand()
+
+
+            //  setValues()
+
+      //  initializeSeekBars()
+
+//        var bytes: ByteArray? = intent.getByteArrayExtra("ResponseImage")
+//        imageFromServer(bytes)
     }
 
-    // The internal MutableLiveData String that stores the most recent response
-    private val _response = MutableLiveData<String>()
-
-    // The external immutable LiveData for the response String
-    val response: LiveData<String>
-        get() = _response
-
-    /**
-     * Call getMarsRealEstateProperties() on init so we can display status immediately.
-     */
-    init {
-        getScreenshot()
+    private fun initCommand() {
+        command = Command(0.2f, 0.2f, 0.2f, 0.2f)
     }
 
-    /**
-     * Sets the value of the status LiveData to the Mars API status.
-     */
-    private fun getScreenshot() {
+//    private fun setValues() {
+//        lastAileron
+//        lastRudder = rudderSeekBar.progress.toFloat()
+//        lastThrottle = throttleSeekBar.progress.toFloat()
+//        throttleSeekBar.
+//
+//    }
+//    private fun initializeSeekBars() {
+//        throttleSeekBar?.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+//            override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
+//                // Write code to perform some action when progress is changed.
+//            }
+//
+//            override fun onStartTrackingTouch(seekBar: SeekBar) {
+//                // Write code to perform some action when touch is started.
+//            }
+//
+//            override fun onStopTrackingTouch(seekBar: SeekBar) {
+//                // Write code to perform some action when touch is stopped.
+//                Toast.makeText(this@ControlActivity, "Progress is " + seekBar.progress + "%", Toast.LENGTH_SHORT).show()
+//            }
+//        })
+//
+//        rudderSeekBar?.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+//            override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
+//                // Write code to perform some action when progress is changed.
+//
+//                var length = seekBar.max
+//                var realValue = progress / length
+//            }
+//
+//            override fun onStartTrackingTouch(seekBar: SeekBar) {
+//                // Write code to perform some action when touch is started.
+//            }
+//
+//            override fun onStopTrackingTouch(seekBar: SeekBar) {
+//                // Write code to perform some action when touch is stopped.
+//                Toast.makeText(this@ControlActivity, "Progress is " + seekBar.progress + "%", Toast.LENGTH_SHORT).show()
+//            }
+//        })
+//    }
+    private fun imageFromServer(data: ByteArray?) {
+        // val i= response?.body()?.byteStream()
+        val b = data?.size?.let { BitmapFactory.decodeByteArray(data, 0, it) };
+        // val b = BitmapFactory.decodeStream(i)
+        runOnUiThread { screenshot.setImageBitmap(b) }
+    }
 
-        uiScope.launch {
-            var deferedReslts = FlightApi.retrofitService.getScreenshotAsync()
-            try {
-                var item = deferedReslts.await()
-               // textView.text = "Success: ${item}"
+    private fun sendCommand() {
+        val api = retrofit.create(FlightApiService::class.java)
+        api.postCommand(command).enqueue(object : Callback<Response<String>> {
+            override fun onResponse(
+                call: Call<Response<String>>,
+                response: Response<Response<String>>
+            ) {
+                if (!response.isSuccessful) {
+                    Toast.makeText(
+                        applicationContext,
+                        response.message(),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    Toast.makeText(
+                        applicationContext,
+                        R.string.post_succeded,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+
+            override fun onFailure(call: Call<Response<String>>, t: Throwable) {
                 Toast.makeText(
                     applicationContext,
-                    R.string.app_name,
-                    Toast.LENGTH_SHORT
-                ).show()
-            } catch (e: Exception) {
-                textView.text = e.toString()
-                Toast.makeText(
-                    applicationContext,
-                    e.message,
+                    t.message + "fail",
                     Toast.LENGTH_SHORT
                 ).show()
             }
-        }
+        })
 
-//        //_response.value = "Set the Mars API Response here!"
-//        FlightApi.retrofitService.getScreenshot()
-//        FlightApi.retrofitService.getScreenshot().enqueue(
-//            object : Callback<String> {
-//
-//                override fun onFailure(call: Call<String>, t: Throwable) {
-//                    _response.value = "Failure: " + t.message
-//                }
-//
-//                override fun onResponse(
-//                    call: Call<String>,
-//                    response: Response<String>
-//                ) {
-//                    _response.value = response.body()
-//                    val v: TextView = findViewById(R.id.response)
-//                    v.text = _response.value;
-//                }
-//            })
     }
-
-
-//    override fun onDraw(canvas: Canvas) {
-//        val width = canvas.width
-//        val height = canvas.height
-//        val centerX = width / 2
-//        val centerY = height / 2
-//       // canvas.drawCircle()
-//    }
 
 }

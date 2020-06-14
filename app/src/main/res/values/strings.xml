@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Flight Mobile App</string>
-    <string name="shiraz">Shiraz And Nili</string>
+    <string name="post_succeded">Post Succeded</string>
+    <string name="post_failed">Could not set values</string>
     <string name="connect">Connect</string>
     <string name="url_text">Type URL..</string>
     <string name="back">Back</string>
@@ -15,4 +16,6 @@
     <string name="fan_low">1</string>
     <string name="fan_medium">2</string>
     <string name="fan_high">3</string>
+    <string name="empty_url_input">URL input is empty. Please enter URL</string>
+    <string name="connection_fail">Connection failed</string>
 </resources>

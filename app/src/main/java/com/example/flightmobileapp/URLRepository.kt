@@ -30,4 +30,11 @@ class URLRepository(private val urlDao: URLDao) {
     suspend fun initPosition(url: String) {
         urlDao.initPosition(url)
     }
+    suspend fun alreadyExists(url: String): Int {
+        return urlDao.alreadyExists(url)
+    }
+
+    suspend fun getPositionByUrl(url: String): Int {
+        return urlDao.getPositionByUrl(url)
+    }
 }

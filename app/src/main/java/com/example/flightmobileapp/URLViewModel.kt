@@ -49,4 +49,13 @@ class URLViewModel(application: Application) : AndroidViewModel(application) {
     fun initPosition(url: String) = viewModelScope.launch(Dispatchers.IO) {
         repository.initPosition(url)
     }
+
+    fun alreadyExists(url: String): Int = runBlocking{
+        repository.alreadyExists(url)
+    }
+
+    fun getPositionByUrl(url: String): Int = runBlocking{
+        repository.getPositionByUrl(url)
+    }
+
 }

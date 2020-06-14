@@ -32,4 +32,10 @@ interface URLDao {
 
     @Query("SELECT url from url_table WHERE position = :position")
     suspend fun getUrlByPosition(position: Int): String
+
+    @Query("SELECT COUNT(1) FROM url_table WHERE url LIKE :url")
+    suspend fun alreadyExists(url: String): Int
+
+    @Query("SELECT position FROM url_table WHERE url LIKE :url")
+    suspend fun getPositionByUrl(url: String): Int
 }
