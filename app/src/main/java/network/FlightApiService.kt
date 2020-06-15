@@ -33,6 +33,9 @@ interface FlightApiService {
 
     @POST("api/command")
     fun postCommand(@Body command: Command): Call<Void>
+
+    @POST("disconnect")
+    fun disconnect(): Call<Void>
 }
 
 //object FlightApi {

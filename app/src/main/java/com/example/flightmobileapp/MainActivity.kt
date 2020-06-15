@@ -6,6 +6,7 @@ import android.graphics.Color
 import android.media.Image
 import android.os.Bundle
 import android.text.TextUtils
+import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
@@ -90,13 +91,19 @@ class MainActivity : AppCompatActivity() {
 
         api.getScreenshotAsync().enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response1: Response<ResponseBody>) {
-
                 // we should check if respones1.is succeeded!!!
-
-                val intent = Intent(this@MainActivity, ControlActivity::class.java)
-                intent.putExtra("ResponseImage", response1.body()!!.bytes())
-                intent.putExtra("Url", url)
-                startActivity(intent)
+                if (response1.isSuccessful) {
+                    val intent = Intent(this@MainActivity, ControlActivity::class.java)
+                    //intent.putExtra("ResponseImage", response1.body()!!.bytes())
+                    intent.putExtra("Url", url)
+                    startActivity(intent)
+                } else {
+                    Toast.makeText(
+                        applicationContext,
+                        R.string.connection_fail,
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
             }
 
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
@@ -122,26 +129,29 @@ class MainActivity : AppCompatActivity() {
             var url = inputUrl.text.toString()
             val word = URLItem(url, 0)
             if (urlViewModel.alreadyExists(url) == 1) {
-//                val position  = urlViewModel.getPositionByUrl(url)
-//                urlViewModel.updatePosition(position)
-//                urlViewModel.initPosition(url)
+                //Log.d("TAG", "exists")
+                val position = urlViewModel.getPositionByUrl(url)
+                //Log.d("TAG", position.toString())
+                urlViewModel.updatePosition(position)
+                urlViewModel.initPosition(url)
             } else {
                 urlViewModel.increaseAll()
                 urlViewModel.insert(word)
                 urlViewModel.deleteExtra()
             }
             url = "http://10.0.2.2:64673"
-           // connectToServer(url)
+            connectToServer(url)
 
-            // just for debug - delete it.
-            val intent = Intent(this@MainActivity, ControlActivity::class.java)
-            intent.putExtra("Url", url)
-            startActivity(intent)
+//            // just for debug - delete it.
+//            val intent = Intent(this@MainActivity, ControlActivity::class.java)
+//            intent.putExtra("Url", url)
+//            startActivity(intent)
         }
     }
 }
 
-// insert existing url.
 // post.
-// size and location of image in landscape mode.
-// get screenshot may response with null - we should do that the server will return bad request or something
+//
+//
+// may be not need thread in the manager and use async write and read, and check all the messages before rerutning ok.
+// send a disconnect command to the controller when we move to the prev activity.

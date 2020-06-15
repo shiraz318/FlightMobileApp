@@ -4,10 +4,10 @@ import com.squareup.moshi.Json
 
 data class Command(
 
-    @Json(name = "aileron") val aileron: Float,
-    @Json(name = "rudder") val rudder: Float,
-    @Json(name = "elevator") val elevator: Float,
-    @Json(name = "throttle") val throttle: Float
+    @Json(name = "aileron") var aileron: Float,
+    @Json(name = "rudder") var rudder: Float,
+    @Json(name = "elevator") var elevator: Float,
+    @Json(name = "throttle") var throttle: Float
 
 )
 

@@ -27,6 +27,7 @@ class JoystickView @JvmOverloads constructor(
     private var innerCenter: PointF = PointF()
     private var outerCenter: PointF = PointF()
     private var outerRadius: Float = 0.0f
+    private var notifyChanges: () -> Unit = {}
 
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
@@ -141,6 +142,8 @@ class JoystickView @JvmOverloads constructor(
         //trying()
 
         innerCenter = updatePosition(x, y);
+        notifyChanges()
+
         // Will render again the screen.
         invalidate()
 
@@ -149,8 +152,8 @@ class JoystickView @JvmOverloads constructor(
     private fun resetCenter() {
         // operate animation.
 
-
         innerCenter = outerCenter
+        notifyChanges()
         // Will render again the screen.
         invalidate()
     }
@@ -176,4 +179,33 @@ class JoystickView @JvmOverloads constructor(
         //return super.onTouchEvent(event)
         return true
     }
+
+    public fun getAileron(): Float {
+        return innerCenter.x
+    }
+
+    public fun getElevator(): Float {
+        return innerCenter.y
+    }
+
+    public fun setFunction(function: () -> Unit) {
+        notifyChanges = function
+    }
+
+    fun getOuterRadius(): Float {
+        return outerRadius
+    }
+
+    fun getInnerRadius(): Float {
+        return innerRadius
+    }
+
+    fun getCenterX(): Float {
+        return outerCenter.x
+    }
+
+    fun getCenterY(): Float {
+        return outerCenter.y
+    }
+
 }
