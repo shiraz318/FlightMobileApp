@@ -86,7 +86,6 @@ class MainActivity : AppCompatActivity() {
         val gson = GsonBuilder().setLenient().create()
         val retrofit = Retrofit.Builder().baseUrl(url)
             .addConverterFactory(GsonConverterFactory.create(gson)).build()
-
         val api = retrofit.create(FlightApiService::class.java)
 
         api.getScreenshotAsync().enqueue(object : Callback<ResponseBody> {

@@ -32,7 +32,7 @@ interface FlightApiService {
     fun getScreenshotAsync(): Call<ResponseBody>
 
     @POST("api/command")
-    fun postCommand(@Body command: Command): Call<Response<String>>
+    fun postCommand(@Body command: Command): Call<Void>
 }
 
 //object FlightApi {

@@ -68,7 +68,7 @@ class ControlActivity : AppCompatActivity() {
     }
 
     private fun initCommand() {
-        command = Command(0.2f, 0.2f, 0.2f, 0.2f)
+        command = Command(0.3f, 0.2f, 0.2f, 0.2f)
     }
 
 //    private fun setValues() {
@@ -121,30 +121,30 @@ class ControlActivity : AppCompatActivity() {
 
     private fun sendCommand() {
         val api = retrofit.create(FlightApiService::class.java)
-        api.postCommand(command).enqueue(object : Callback<Response<String>> {
+        api.postCommand(command).enqueue(object : Callback<Void> {
             override fun onResponse(
-                call: Call<Response<String>>,
-                response: Response<Response<String>>
+                call: Call<Void>,
+                response: Response<Void>
             ) {
                 if (!response.isSuccessful) {
                     Toast.makeText(
                         applicationContext,
-                        response.message(),
+                        response.errorBody()!!.string(),
                         Toast.LENGTH_SHORT
                     ).show()
                 } else {
                     Toast.makeText(
                         applicationContext,
-                        R.string.post_succeded,
+                        response.message(),
                         Toast.LENGTH_SHORT
                     ).show()
                 }
             }
 
-            override fun onFailure(call: Call<Response<String>>, t: Throwable) {
+            override fun onFailure(call: Call<Void>, t: Throwable) {
                 Toast.makeText(
                     applicationContext,
-                    t.message + "fail",
+                    t.message + " fail",
                     Toast.LENGTH_SHORT
                 ).show()
             }
