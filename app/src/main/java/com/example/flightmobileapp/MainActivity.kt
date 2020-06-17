@@ -7,6 +7,7 @@ import android.media.Image
 import android.os.Bundle
 import android.text.TextUtils
 import android.util.Log
+import android.view.Gravity
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
@@ -63,16 +64,12 @@ class MainActivity : AppCompatActivity() {
                 object : RecyclerItemClickListenr.OnItemClickListener {
                     override fun onItemClick(view: View, position: Int) {
                         var url = urlViewModel.getUrlByPosition(position)
-                        urlViewModel.updatePosition(position)
+//                        urlViewModel.updatePosition(position)
                         if (url == null) {
-                            Toast.makeText(
-                                applicationContext,
-                                R.string.error_get_url_by_position,
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            displayMessage("Error getting the required url")
                         } else {
                             inputUrl.setText(url)
-                            urlViewModel.initPosition(url)
+                            //urlViewModel.initPosition(url)
                         }
                     }
 
@@ -84,74 +81,76 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun connectToServer(url: String) {
-        val gson = GsonBuilder().setLenient().create()
+        val json = GsonBuilder().setLenient().create()
         val retrofit = Retrofit.Builder().baseUrl(url)
-            .addConverterFactory(GsonConverterFactory.create(gson)).build()
+            .addConverterFactory(GsonConverterFactory.create(json)).build()
         val api = retrofit.create(FlightApiService::class.java)
 
         api.getScreenshotAsync().enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response1: Response<ResponseBody>) {
-                // we should check if respones1.is succeeded!!!
                 if (response1.isSuccessful) {
                     val intent = Intent(this@MainActivity, ControlActivity::class.java)
-                    //intent.putExtra("ResponseImage", response1.body()!!.bytes())
                     intent.putExtra("Url", url)
                     startActivity(intent)
                 } else {
-                    Toast.makeText(
-                        applicationContext,
-                        R.string.connection_fail,
-                        Toast.LENGTH_LONG
-                    ).show()
+                    displayMessage("Connection failed")
                 }
             }
 
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                Toast.makeText(
-                    applicationContext,
-                    R.string.connection_fail,
-                    Toast.LENGTH_LONG
-                ).show()
+                displayMessage("Connection failed")
             }
         })
 
     }
 
+    private fun displayMessage(message: String) {
+        val toast = Toast.makeText(
+            applicationContext,
+            message,
+            Toast.LENGTH_LONG
+        )
+        toast.setGravity(Gravity.TOP, 0, 210)
+        toast.show()
+    }
+
     private fun connect(inputUrl: EditText) {
         // Server stuff.
         if (TextUtils.isEmpty(inputUrl.text)) {
-            Toast.makeText(
-                applicationContext,
-                R.string.empty_url_input,
-                Toast.LENGTH_SHORT
-            ).show()
+
+            displayMessage("URL input is empty. Please enter URL")
         } else {
             var url = inputUrl.text.toString()
-            val word = URLItem(url, 0)
+            val urlItem = URLItem(url, 0)
             if (urlViewModel.alreadyExists(url) == 1) {
-                //Log.d("TAG", "exists")
                 val position = urlViewModel.getPositionByUrl(url)
-                //Log.d("TAG", position.toString())
                 urlViewModel.updatePosition(position)
                 urlViewModel.initPosition(url)
+
             } else {
                 urlViewModel.increaseAll()
-                urlViewModel.insert(word)
+                urlViewModel.insert(urlItem)
                 urlViewModel.deleteExtra()
             }
             url = "http://10.0.2.2:64673"
-            connectToServer(url)
+           // connectToServer(url)
 
 //            // just for debug - delete it.
-//            val intent = Intent(this@MainActivity, ControlActivity::class.java)
-//            intent.putExtra("Url", url)
-//            startActivity(intent)
+            val intent = Intent(this@MainActivity, ControlActivity::class.java)
+            intent.putExtra("Url", url)
+            startActivity(intent)
         }
     }
+
+    override fun onResume() {
+        super.onResume()
+        inputUrl.setText("")
+    }
 }
+
 
 // post.
 //
 //
 // may be not need thread in the manager and use async write and read, and check all the messages before rerutning ok.
-// send a disconnect command to the controller when we move to the prev activity.
+// room need to be syncroni and all ui things need to be synchroni including get and post. may be replan runonuiThread to run on new thread.

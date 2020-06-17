@@ -4,6 +4,8 @@ package com.example.flightmobileapp
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Log
+import android.view.Gravity
+import android.view.animation.AnimationUtils
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -31,54 +33,69 @@ class ControlActivity : AppCompatActivity() {
     private var uiScope = CoroutineScope(Dispatchers.Main + viewModelJob)
     private var aileron: Float = 0.0f
     private var elevator: Float = 0.0f
-    private var throttle: Float = 50.0f
-    private var rudder: Float = 0.0f
+    private var throttle: Float = 0.0f
+    private var rudder: Float = 50.0f
     lateinit var throttleSeekBar: SeekBar
     lateinit var rudderSeekBar: SeekBar
     private lateinit var command: Command
     lateinit var retrofit: Retrofit
     lateinit var joystickView: JoystickView
-
+    private var stop = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_control)
-        throttleSeekBar = findViewById(R.id.throttle_slider)
-        throttleSeekBar.progress = 50
-        rudderSeekBar = findViewById(R.id.rudder_slider)
-        joystickView = findViewById(R.id.joystickView)
-        joystickView.setFunction { onChangeJoystick() }
+
+        setViews()
         initCommand()
-        var url = intent.getStringExtra("Url")
-        val gson = GsonBuilder().setLenient().create()
+        setRetrofit()
 
-        val httpClient = OkHttpClient.Builder()
-            .callTimeout(2, TimeUnit.MINUTES)
-            .connectTimeout(1, TimeUnit.MINUTES)
-            .readTimeout(40, TimeUnit.SECONDS)
-            .writeTimeout(40, TimeUnit.SECONDS)
+//        joystickView.setApplyAnimation {
+//            val animation = AnimationUtils.loadAnimation(this, R.anim.bounce)
+//            joystickView.startAnimation(animation)
+//        }
 
-        val builder: Retrofit.Builder = Retrofit.Builder()
-            .baseUrl(url)
-            .addConverterFactory(GsonConverterFactory.create(gson))
-
-        builder.client(httpClient.build())
-
-        retrofit = builder.build()
-        initializeSeekBars()
         //sendCommand()
 
 
-        //  setValues()
-
-        //  initializeSeekBars()
-//
-//        var bytes: ByteArray? = intent.getByteArrayExtra("ResponseImage")
-//        imageFromServer(bytes)
-
-        displayImage()
     }
 
+    private fun displayMessage(message: String) {
+        val toast = Toast.makeText(
+            applicationContext,
+            message,
+            Toast.LENGTH_LONG
+        )
+        toast.setGravity(Gravity.TOP, 0, 210)
+        toast.show()
+    }
+
+    private fun setViews() {
+        throttleSeekBar = findViewById(R.id.throttle_slider)
+        rudderSeekBar = findViewById(R.id.rudder_slider)
+        rudderSeekBar.progress = 50
+        joystickView = findViewById(R.id.joystickView)
+        joystickView.setFunction { onChangeJoystick() }
+        initializeSeekBars()
+    }
+
+    private fun setRetrofit() {
+        var url = intent.getStringExtra("Url")
+        val json = GsonBuilder().setLenient().create()
+
+        val httpClient = OkHttpClient.Builder()
+            .callTimeout(10, TimeUnit.SECONDS)
+            .connectTimeout(10, TimeUnit.SECONDS)
+            .readTimeout(10, TimeUnit.SECONDS)
+            .writeTimeout(10, TimeUnit.SECONDS)
+
+        val builder: Retrofit.Builder = Retrofit.Builder()
+            .baseUrl(url)
+            .addConverterFactory(GsonConverterFactory.create(json))
+
+        builder.client(httpClient.build())
+        retrofit = builder.build()
+    }
 
     private fun changeEnough(newValue: Float, prevValue: Float, range: Float): Boolean {
         val part = calculatePartMove(newValue, prevValue, range)
@@ -166,20 +183,28 @@ class ControlActivity : AppCompatActivity() {
 
         api.getScreenshotAsync().enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response1: Response<ResponseBody>) {
+                if (response1.body() == null) {
+                    displayMessage("Could Not Get Screenshot. Please Try Reconnecting")
+                    return
+                }
                 val data = response1.body()!!.bytes()
-                val b = data?.size?.let { BitmapFactory.decodeByteArray(data, 0, it) }
-                runOnUiThread { screenshot.setImageBitmap(b) }
+                if (data == null) {
+                    displayMessage("Could Not Get Screenshot. Please Try Reconnecting")
+                } else {
+                    val b = data.size.let { BitmapFactory.decodeByteArray(data, 0, it) }
+                    Thread { screenshot.setImageBitmap(b) }.start()
+                }
             }
 
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-
+                displayMessage("Could Not Get Screenshot. Please Try Reconnecting")
             }
         })
     }
 
-    private fun displayImage() {
+    fun displayImage() {
         Thread {
-            while (true) {
+            while (!stop) {
                 getImage()
                 sleep(1000)
             }
@@ -191,21 +216,14 @@ class ControlActivity : AppCompatActivity() {
         command = Command(0.3f, 0.2f, 0.2f, 0.2f)
     }
 
-    //    private fun setValues() {
-//        lastAileron
-//        lastRudder = rudderSeekBar.progress.toFloat()
-//        lastThrottle = throttleSeekBar.progress.toFloat()
-//        throttleSeekBar.
-//
-//    }
     private fun initializeSeekBars() {
-        rudderSeekBar?.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+        throttleSeekBar?.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
                 // Write code to perform some action when progress is changed.
-                val difference = calculatePartMove(progress.toFloat(), rudder, 1.0f)
+                val difference = calculatePartMove(progress.toFloat(), throttle, 1.0f)
                 if (difference >= 1) {
-                    command.rudder = progress.toFloat() / 100
-                    rudder = progress.toFloat()
+                    command.throttle = progress.toFloat() / 100
+                    throttle = progress.toFloat()
                     sendCommand()
                 }
             }
@@ -219,17 +237,17 @@ class ControlActivity : AppCompatActivity() {
             }
         })
 
-        throttleSeekBar?.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+        rudderSeekBar?.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
                 // Write code to perform some action when progress is changed.
-                val difference = calculatePartMove(progress.toFloat(), throttle, 1.0f)
+                val difference = calculatePartMove(progress.toFloat(), rudder, 1.0f)
                 if (difference >= 1) {
                     if (progress < 50.0f) {
-                        command.throttle = (50 - progress).toFloat() / -50
+                        command.rudder = (50 - progress).toFloat() / -50
                     } else {
-                        command.throttle = (progress - 50).toFloat() / 50
+                        command.rudder = (progress - 50).toFloat() / 50
                     }
-                    throttle = progress.toFloat()
+                    rudder = progress.toFloat()
                     sendCommand()
                 }
             }
@@ -245,67 +263,45 @@ class ControlActivity : AppCompatActivity() {
         })
     }
 
-    private fun imageFromServer(data: ByteArray?) {
-        // val i= response?.body()?.byteStream()
-        val b = data?.size?.let { BitmapFactory.decodeByteArray(data, 0, it) };
-        // val b = BitmapFactory.decodeStream(i)
-        runOnUiThread { screenshot.setImageBitmap(b) }
-    }
-
     private fun sendCommand() {
+        Log.d("TAG", "inpost")
+
         val api = retrofit.create(FlightApiService::class.java)
         api.postCommand(command).enqueue(object : Callback<Void> {
             override fun onResponse(
                 call: Call<Void>,
                 response: Response<Void>
             ) {
-                if (!response.isSuccessful) {
-                    Toast.makeText(
-                        applicationContext,
-                        response.errorBody()!!.string(),
-                        Toast.LENGTH_SHORT
-                    ).show()
+                if (response.isSuccessful) {
+                    Log.d("TAG", "success")
+                    Log.d("TAG", response.message())
+                } else if (response.code() == 404) {
+                    displayMessage("Oops! Something Is Wrong. Please Try Reconnecting")
                 } else {
-                    Toast.makeText(
-                        applicationContext,
-                        response.message(),
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    displayMessage("Could Not Set Values")
                 }
             }
 
             override fun onFailure(call: Call<Void>, t: Throwable) {
-                Toast.makeText(
-                    applicationContext,
-                    t.message + " fail",
-                    Toast.LENGTH_SHORT
-                ).show()
+                displayMessage("Oops! Something Is Wrong. Please Try Reconnecting")
             }
         })
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        val api = retrofit.create(FlightApiService::class.java)
-        api.disconnect().enqueue(object : Callback<Void> {
-            override fun onResponse(
-                call: Call<Void>,
-                response: Response<Void>
-            ) {
-                Toast.makeText(
-                    applicationContext,
-                    " disconnected",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-
-            override fun onFailure(call: Call<Void>, t: Throwable) {
-                Toast.makeText(
-                    applicationContext,
-                    " disconnected failed",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        })
+    override fun onStop() {
+        super.onStop()
+        stop = true
     }
+
+    override fun onPause() {
+        super.onPause()
+        stop = true
+    }
+
+    override fun onResume() {
+        super.onResume()
+        stop = false
+        Thread { displayImage() }.start()
+    }
+
 }

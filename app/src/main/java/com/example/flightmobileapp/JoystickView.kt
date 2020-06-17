@@ -6,6 +6,7 @@ import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
+import android.view.animation.AnimationUtils
 import android.widget.Toast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -28,6 +29,7 @@ class JoystickView @JvmOverloads constructor(
     private var outerCenter: PointF = PointF()
     private var outerRadius: Float = 0.0f
     private var notifyChanges: () -> Unit = {}
+    private var applyAnimation: () -> Unit = {}
 
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
@@ -139,8 +141,6 @@ class JoystickView @JvmOverloads constructor(
 
     private fun touchMove(x: Float, y: Float) {
 
-        //trying()
-
         innerCenter = updatePosition(x, y);
         notifyChanges()
 
@@ -151,6 +151,8 @@ class JoystickView @JvmOverloads constructor(
 
     private fun resetCenter() {
         // operate animation.
+
+        applyAnimation()
 
         innerCenter = outerCenter
         notifyChanges()
@@ -180,16 +182,20 @@ class JoystickView @JvmOverloads constructor(
         return true
     }
 
-    public fun getAileron(): Float {
+    fun getAileron(): Float {
         return innerCenter.x
     }
 
-    public fun getElevator(): Float {
+    fun getElevator(): Float {
         return innerCenter.y
     }
 
-    public fun setFunction(function: () -> Unit) {
+    fun setFunction(function: () -> Unit) {
         notifyChanges = function
+    }
+
+    fun setApplyAnimation(function: () -> Unit) {
+        applyAnimation = function
     }
 
     fun getOuterRadius(): Float {

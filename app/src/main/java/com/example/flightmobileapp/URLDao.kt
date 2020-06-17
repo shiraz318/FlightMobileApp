@@ -10,7 +10,7 @@ import androidx.room.Query
 interface URLDao {
 
     @Query("SELECT * from url_table ORDER BY position ASC")
-    fun getAlphabetizedWords(): LiveData<List<URLItem>>
+    fun getUrlsOrderedByPosition(): LiveData<List<URLItem>>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(url: URLItem)
