@@ -1,5 +1,6 @@
 package com.example.flightmobileapp
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
@@ -70,53 +71,46 @@ class JoystickView @JvmOverloads constructor(
 
     // Find the closeset intersection point of the given point and the inner circle.
     private fun closestIntersection(lineEnd: PointF): PointF {
-        var intersection1: PointF
-        var intersection2: PointF
         // Find the intersections point.
-        var points: Array<PointF> = calculateIntersections(lineEnd)
-        intersection1 = points[0]
-        intersection2 = points[1]
+        val points: Array<PointF> = calculateIntersections(lineEnd)
+        val intersection1 = points[0]
+        val intersection2 = points[1]
         // Calculate the distance from the intersection 1 point to the current location.
-        var dist1: Float = sqrt(
+        val dist1: Float = sqrt(
             ((intersection1.x - lineEnd.x) * (intersection1.x - lineEnd.x)) +
                     ((intersection1.y - lineEnd.y) * (intersection1.y - lineEnd.y))
         )
         // Calculate the distance from the intersection 2 point to the current location.
-        var dist2: Float = sqrt(
+        val dist2: Float = sqrt(
             ((intersection2.x - lineEnd.x) * (intersection2.x - lineEnd.x)) +
                     ((intersection2.y - lineEnd.y) * (intersection2.y - lineEnd.y))
         )
         // Checking which point is the closest.
-        var point: PointF
-        if (dist1 < dist2) {
-            point = intersection1;
+        val point: PointF
+        point = if (dist1 < dist2) {
+            intersection1
         } else {
-            point = intersection2
+            intersection2
         }
-        return point;
+        return point
     }
 
     // Find the intersection points of the given point and the inner circle.
     private fun calculateIntersections(point2: PointF): Array<PointF> {
-        var intersection1: PointF
-        var intersection2: PointF
-        var a: Float
-        var delta: Float
-        var t: Float
         // Calculate equation of circle -
         // (x - outerCenter.x)^2 + (y - outerCenter.y)^2 = innerRadius^2
-        var dx: Float = point2.x - outerCenter.x
-        var dy: Float = point2.y - outerCenter.y
+        val dx: Float = point2.x - outerCenter.x
+        val dy: Float = point2.y - outerCenter.y
         // Calculate A,C for line equation
         // (there is no need to calculate B because it will always be zero).
-        a = dx * dx + dy * dy
-        var c: Float = -innerRadius * innerRadius;
+        val a = dx * dx + dy * dy
+        val c: Float = -innerRadius * innerRadius;
         // Delta for finding solutions.
-        delta = -4 * a * c;
+        val delta = -4 * a * c;
         // Two solutions.
-        t = ((sqrt(delta)) / (2 * a));
-        intersection1 = PointF(outerCenter.x + t * dx, outerCenter.y + t * dy);
-        intersection2 = PointF(outerCenter.x - t * dx, outerCenter.y - t * dy);
+        val t = ((sqrt(delta)) / (2 * a));
+        val intersection1 = PointF(outerCenter.x + t * dx, outerCenter.y + t * dy);
+        val intersection2 = PointF(outerCenter.x - t * dx, outerCenter.y - t * dy);
         return arrayOf(intersection1, intersection2)
     }
 
@@ -140,20 +134,16 @@ class JoystickView @JvmOverloads constructor(
 
 
     private fun touchMove(x: Float, y: Float) {
-
         innerCenter = updatePosition(x, y);
         notifyChanges()
 
         // Will render again the screen.
         invalidate()
-
     }
 
     private fun resetCenter() {
         // operate animation.
-
         applyAnimation()
-
         innerCenter = outerCenter
         notifyChanges()
         // Will render again the screen.
@@ -161,24 +151,22 @@ class JoystickView @JvmOverloads constructor(
     }
 
     private fun updateCurrent(x: Float, y: Float): Boolean {
-
         startX = x
         startY = y
-
         return true
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent?): Boolean {
 
         if (event == null) {
             return true
         }
-        when (event?.action) {
+        when (event.action) {
             MotionEvent.ACTION_DOWN -> return updateCurrent(event.x, event.y)
             MotionEvent.ACTION_MOVE -> touchMove(event.x, event.y)
             MotionEvent.ACTION_UP -> resetCenter()
         }
-        //return super.onTouchEvent(event)
         return true
     }
 
@@ -192,10 +180,6 @@ class JoystickView @JvmOverloads constructor(
 
     fun setFunction(function: () -> Unit) {
         notifyChanges = function
-    }
-
-    fun setApplyAnimation(function: () -> Unit) {
-        applyAnimation = function
     }
 
     fun getOuterRadius(): Float {

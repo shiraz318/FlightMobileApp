@@ -6,7 +6,7 @@ import android.view.MotionEvent
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
 
-class RecyclerItemClickListenr(
+class RecyclerItemClickListener(
     context: Context,
     recyclerView: RecyclerView,
     private val mListener: OnItemClickListener?
@@ -21,7 +21,6 @@ class RecyclerItemClickListenr(
     }
 
     init {
-
         mGestureDetector =
             GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
                 override fun onSingleTapUp(e: MotionEvent): Boolean {

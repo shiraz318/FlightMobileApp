@@ -5,7 +5,6 @@ import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
-import android.view.animation.AnimationUtils
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -18,8 +17,6 @@ import kotlinx.coroutines.launch
 import network.FlightApiService
 import okhttp3.OkHttpClient
 import okhttp3.ResponseBody
-import retrofit2.Call
-import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -47,19 +44,8 @@ class ControlActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_control)
-
         setViews()
         initCommand()
-
-
-//        joystickView.setApplyAnimation {
-//            val animation = AnimationUtils.loadAnimation(this, R.anim.bounce)
-//            joystickView.startAnimation(animation)
-//        }
-
-        //sendCommand()
-
-
     }
 
     private fun displayMessage(message: String) {
@@ -84,7 +70,11 @@ class ControlActivity : AppCompatActivity() {
     }
 
     private fun setRetrofit() {
-        var url = intent.getStringExtra("Url")
+        val url = intent.getStringExtra("Url")
+        if (url == null) {
+            displayMessage("Error In Url Address")
+            return
+        }
         val json = GsonBuilder().setLenient().create()
 
         val httpClient = OkHttpClient.Builder()
@@ -144,42 +134,33 @@ class ControlActivity : AppCompatActivity() {
     }
 
     private fun onChangeJoystick() {
-
-        val newElevator = joystickView.getElevator()
-        val newAileron = joystickView.getAileron()
-        val outerRadius = joystickView.getOuterRadius()
-        val innerRadius = joystickView.getInnerRadius()
-        val centerX = joystickView.getCenterX()
-        val centerY = joystickView.getCenterY()
+        val data = JoystickData(
+            joystickView.getElevator(), joystickView.getAileron(),
+            joystickView.getOuterRadius(), joystickView.getInnerRadius(), joystickView.getCenterX(),
+            joystickView.getCenterY()
+        )
         val commandElevator: Float
         val commandAileron: Float
-        val range: Float = (outerRadius - innerRadius) * 2
+        val range: Float = (data.outerRadius - data.innerRadius) * 2
         var isChangedEnough = false
-
-        if (checkIfCenter(newAileron, newElevator, centerX, centerY)) {
+        if (checkIfCenter(data.newAileron, data.newElevator, data.centerX, data.centerY)) {
             return
         }
-        if (changeEnough(newElevator, elevator, range)) {
+        if (changeEnough(data.newElevator, elevator, range)) {
             isChangedEnough = true
-            elevator = newElevator
-            commandElevator = normalizeValue(newElevator, centerY, range)
+            elevator = data.newElevator
+            commandElevator = normalizeValue(data.newElevator, data.centerY, range)
         } else {
-            commandElevator = normalizeValue(elevator, centerY, range)
+            commandElevator = normalizeValue(elevator, data.centerY, range)
         }
-
-        if (changeEnough(newAileron, aileron, range)) {
+        if (changeEnough(data.newAileron, aileron, range)) {
             isChangedEnough = true
-            aileron = newAileron
-            commandAileron = normalizeValue(newAileron, centerX, range)
+            aileron = data.newAileron
+            commandAileron = normalizeValue(data.newAileron, data.centerX, range)
         } else {
-            commandAileron = normalizeValue(aileron, centerX, range)
+            commandAileron = normalizeValue(aileron, data.centerX, range)
         }
-
-        if (isChangedEnough) {
-            command.aileron = commandAileron
-            command.elevator = commandElevator
-            uiScope.launch { sendCommand() }
-        }
+        postIfNeeded(isChangedEnough, commandAileron, commandElevator)
     }
 
     private suspend fun getImage() {
@@ -196,31 +177,6 @@ class ControlActivity : AppCompatActivity() {
         } catch (e: Exception) {
             displayMessage("Could Not Get Screenshot. Please Try Reconnecting")
         }
-//
-//
-//        api.getScreenshotAsync().enqueue(object : Callback<ResponseBody> {
-//            override fun onResponse(call: Call<ResponseBody>, response1: Response<ResponseBody>) {
-//                if (response1.body() == null) {
-//                    displayMessage("Could Not Get Screenshot. Please Try Reconnecting")
-//                    return
-//                }
-////                if (response1.isSuccessful) {
-//                val data = response1.body()!!.bytes()
-//                if (data == null) {
-//                    displayMessage("Could Not Get Screenshot. Please Try Reconnecting")
-//                } else {
-//                    val b = data.size.let { BitmapFactory.decodeByteArray(data, 0, it) }
-//                    runOnUiThread { screenshot.setImageBitmap(b) }
-//                }
-////                } else {
-////                    displayMessage("Could Not Get Screenshot. Please Try Reconnecting")
-////                }
-//            }
-//
-//            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-//                displayMessage("Could Not Get Screenshot. Please Try Reconnecting")
-//            }
-//        })
     }
 
     private fun displayImage() {
@@ -234,30 +190,34 @@ class ControlActivity : AppCompatActivity() {
     }
 
     private fun initCommand() {
-        command = Command(0.3f, 0.2f, 0.2f, 0.2f)
+        command = Command(0.0f, 0.0f, 0.0f, 0.0f)
     }
 
     private fun initializeSeekBars() {
-        throttleSeekBar?.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+        setThrottleSeekBar()
+        setRudderSeekBar()
+    }
+
+    private fun setThrottleSeekBar() {
+        throttleSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
                 // Write code to perform some action when progress is changed.
                 val difference = calculatePartMove(progress.toFloat(), throttle, 1.0f)
-                if (difference >= 1) {
-                    command.throttle = progress.toFloat() / 100
-                    throttle = progress.toFloat()
-                    uiScope.launch { sendCommand() }
-                }
+                postIfNeeded(
+                    difference >= 1,
+                    progress.toFloat() / 100, progress.toFloat()
+                )
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar) {
-                // Write code to perform some action when touch is started.
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar) {
-                // Write code to perform some action when touch is stopped.
             }
         })
+    }
 
+    private fun setRudderSeekBar() {
         rudderSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
                 // Write code to perform some action when progress is changed.
@@ -274,20 +234,26 @@ class ControlActivity : AppCompatActivity() {
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar) {
-                // Write code to perform some action when touch is started.
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar) {
-                // Write code to perform some action when touch is stopped.
-                //Toast.makeText(this@ControlActivity, "Progress is " + seekBar.progress + "%", Toast.LENGTH_SHORT).show()
             }
         })
     }
 
+    private fun postIfNeeded(
+        isChangedEnough: Boolean,
+        commandAileron: Float,
+        commandElevator: Float
+    ) {
+        if (isChangedEnough) {
+            command.aileron = commandAileron
+            command.elevator = commandElevator
+            uiScope.launch { sendCommand() }
+        }
+    }
+
     private suspend fun sendCommand() {
-
-        Log.d("TAG", "inpost")
-
         try {
             val api = retrofit.create(FlightApiService::class.java)
             val response: Response<Void> = api.postCommand(command)
@@ -302,29 +268,6 @@ class ControlActivity : AppCompatActivity() {
         } catch (e: Exception) {
             displayMessage("Could Not Get Screenshot. Please Try Reconnecting")
         }
-
-//        Log.d("TAG", "inpost")
-//
-//        val api = retrofit.create(FlightApiService::class.java)
-//        api.postCommand(command).enqueue(object : Callback<Void> {
-//            override fun onResponse(
-//                call: Call<Void>,
-//                response: Response<Void>
-//            ) {
-//                if (response.isSuccessful) {
-//                    Log.d("TAG", "success")
-//                    Log.d("TAG", response.message())
-//                } else if (response.code() == 404) {
-//                    displayMessage("Oops! Something Is Wrong. Please Try Reconnecting")
-//                } else {
-//                    displayMessage("Could Not Set Values")
-//                }
-//            }
-//
-//            override fun onFailure(call: Call<Void>, t: Throwable) {
-//                displayMessage("Oops! Something Is Wrong. Please Try Reconnecting")
-//            }
-//        })
     }
 
     override fun onStop() {

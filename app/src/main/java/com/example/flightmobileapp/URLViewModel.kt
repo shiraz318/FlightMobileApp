@@ -33,15 +33,19 @@ class URLViewModel(application: Application) : AndroidViewModel(application) {
     fun insert(url: URLItem) = viewModelScope.launch(Dispatchers.IO) {
         repository.insert(url)
     }
+
     fun increaseAll() = viewModelScope.launch(Dispatchers.IO) {
         repository.increaseAll()
     }
+
     fun deleteExtra() = viewModelScope.launch(Dispatchers.IO) {
         repository.deleteExtra()
     }
-    fun getUrlByPosition(position: Int): String = runBlocking{
+
+    fun getUrlByPosition(position: Int): String = runBlocking {
         repository.getUrlByPosition(position)
     }
+
     fun updatePosition(changedItemPosition: Int) = viewModelScope.launch(Dispatchers.IO) {
         repository.updatePosition(changedItemPosition)
     }
@@ -50,11 +54,11 @@ class URLViewModel(application: Application) : AndroidViewModel(application) {
         repository.initPosition(url)
     }
 
-    fun alreadyExists(url: String): Int = runBlocking{
+    fun alreadyExists(url: String): Int = runBlocking {
         repository.alreadyExists(url)
     }
 
-    fun getPositionByUrl(url: String): Int = runBlocking{
+    fun getPositionByUrl(url: String): Int = runBlocking {
         repository.getPositionByUrl(url)
     }
 

@@ -31,24 +31,6 @@ abstract class URLRoomDatabase : RoomDatabase() {
                 return tempInstance
             }
             synchronized(this) {
-//                val MIGRATION_1 = object : Migration(1, 2) {
-//                    override fun migrate(database: SupportSQLiteDatabase) {
-//                        database.execSQL(
-//                            "CREATE TABLE `url_database` (`url` TEXT, `position` INTEGER, " +
-//                                    "PRIMARY KEY(`url`))"
-//                        )
-//                    }
-//                }
-//                val MIGRATION_2_3 = object : Migration(2, 3) {
-//                    override fun migrate(database: SupportSQLiteDatabase) {
-//                        //database.execSQL("ALTER TABLE Book ADD COLUMN pub_year INTEGER")
-//                        database.execSQL(
-//                            "CREATE TABLE `url_database` (`url` TEXT, `position` INTEGER, " +
-//                                    "PRIMARY KEY(`url`))"
-//                        )
-//                    }
-//                }
-
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     URLRoomDatabase::class.java,
@@ -76,7 +58,7 @@ abstract class URLRoomDatabase : RoomDatabase() {
 
         suspend fun populateDatabase(urlDao: URLDao) {
             // Delete all content here.
-           // urlDao.deleteAll()
+            // urlDao.deleteAll()
             urlDao.getUrlsOrderedByPosition()
         }
     }
