@@ -29,10 +29,10 @@ import retrofit2.http.POST
 
 interface FlightApiService {
     @GET("screenshot")
-    fun getScreenshotAsync(): Call<ResponseBody>
+    suspend fun getScreenshotAsync(): Response<ResponseBody>
 
     @POST("api/command")
-    fun postCommand(@Body command: Command): Call<Void>
+    suspend fun postCommand(@Body command: Command): Response<Void>
 
     @POST("disconnect")
     fun disconnect(): Call<Void>

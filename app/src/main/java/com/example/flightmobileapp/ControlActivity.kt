@@ -14,6 +14,7 @@ import kotlinx.android.synthetic.main.activity_control.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import network.FlightApiService
 import okhttp3.OkHttpClient
 import okhttp3.ResponseBody
@@ -22,6 +23,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.lang.Exception
 import java.lang.Thread.sleep
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
@@ -48,7 +50,7 @@ class ControlActivity : AppCompatActivity() {
 
         setViews()
         initCommand()
-        setRetrofit()
+
 
 //        joystickView.setApplyAnimation {
 //            val animation = AnimationUtils.loadAnimation(this, R.anim.bounce)
@@ -61,13 +63,15 @@ class ControlActivity : AppCompatActivity() {
     }
 
     private fun displayMessage(message: String) {
-        val toast = Toast.makeText(
-            applicationContext,
-            message,
-            Toast.LENGTH_LONG
-        )
-        toast.setGravity(Gravity.TOP, 0, 210)
-        toast.show()
+        if (!stop) {
+            val toast = Toast.makeText(
+                applicationContext,
+                message,
+                Toast.LENGTH_LONG
+            )
+            toast.setGravity(Gravity.TOP, 0, 210)
+            toast.show()
+        }
     }
 
     private fun setViews() {
@@ -133,7 +137,7 @@ class ControlActivity : AppCompatActivity() {
             command.elevator = 0.0f
             aileron = newAileron
             command.aileron = 0.0f
-            sendCommand()
+            uiScope.launch { sendCommand() }
             return true
         }
         return false
@@ -174,38 +178,55 @@ class ControlActivity : AppCompatActivity() {
         if (isChangedEnough) {
             command.aileron = commandAileron
             command.elevator = commandElevator
-            sendCommand()
+            uiScope.launch { sendCommand() }
         }
     }
 
-    private fun getImage() {
-        val api = retrofit.create(FlightApiService::class.java)
-
-        api.getScreenshotAsync().enqueue(object : Callback<ResponseBody> {
-            override fun onResponse(call: Call<ResponseBody>, response1: Response<ResponseBody>) {
-                if (response1.body() == null) {
-                    displayMessage("Could Not Get Screenshot. Please Try Reconnecting")
-                    return
-                }
-                val data = response1.body()!!.bytes()
-                if (data == null) {
-                    displayMessage("Could Not Get Screenshot. Please Try Reconnecting")
-                } else {
-                    val b = data.size.let { BitmapFactory.decodeByteArray(data, 0, it) }
-                    Thread { screenshot.setImageBitmap(b) }.start()
-                }
-            }
-
-            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+    private suspend fun getImage() {
+        try {
+            val api = retrofit.create(FlightApiService::class.java)
+            val response: Response<ResponseBody> = api.getScreenshotAsync()
+            if (response.isSuccessful) {
+                val data = response.body()!!.bytes()
+                val b = data.size.let { BitmapFactory.decodeByteArray(data, 0, it) }
+                runOnUiThread { screenshot.setImageBitmap(b) }
+            } else {
                 displayMessage("Could Not Get Screenshot. Please Try Reconnecting")
             }
-        })
+        } catch (e: Exception) {
+            displayMessage("Could Not Get Screenshot. Please Try Reconnecting")
+        }
+//
+//
+//        api.getScreenshotAsync().enqueue(object : Callback<ResponseBody> {
+//            override fun onResponse(call: Call<ResponseBody>, response1: Response<ResponseBody>) {
+//                if (response1.body() == null) {
+//                    displayMessage("Could Not Get Screenshot. Please Try Reconnecting")
+//                    return
+//                }
+////                if (response1.isSuccessful) {
+//                val data = response1.body()!!.bytes()
+//                if (data == null) {
+//                    displayMessage("Could Not Get Screenshot. Please Try Reconnecting")
+//                } else {
+//                    val b = data.size.let { BitmapFactory.decodeByteArray(data, 0, it) }
+//                    runOnUiThread { screenshot.setImageBitmap(b) }
+//                }
+////                } else {
+////                    displayMessage("Could Not Get Screenshot. Please Try Reconnecting")
+////                }
+//            }
+//
+//            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+//                displayMessage("Could Not Get Screenshot. Please Try Reconnecting")
+//            }
+//        })
     }
 
-    fun displayImage() {
+    private fun displayImage() {
         Thread {
             while (!stop) {
-                getImage()
+                uiScope.launch { getImage() }
                 sleep(1000)
             }
         }.start()
@@ -224,7 +245,7 @@ class ControlActivity : AppCompatActivity() {
                 if (difference >= 1) {
                     command.throttle = progress.toFloat() / 100
                     throttle = progress.toFloat()
-                    sendCommand()
+                    uiScope.launch { sendCommand() }
                 }
             }
 
@@ -237,7 +258,7 @@ class ControlActivity : AppCompatActivity() {
             }
         })
 
-        rudderSeekBar?.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+        rudderSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
                 // Write code to perform some action when progress is changed.
                 val difference = calculatePartMove(progress.toFloat(), rudder, 1.0f)
@@ -248,7 +269,7 @@ class ControlActivity : AppCompatActivity() {
                         command.rudder = (progress - 50).toFloat() / 50
                     }
                     rudder = progress.toFloat()
-                    sendCommand()
+                    uiScope.launch { sendCommand() }
                 }
             }
 
@@ -263,29 +284,47 @@ class ControlActivity : AppCompatActivity() {
         })
     }
 
-    private fun sendCommand() {
+    private suspend fun sendCommand() {
+
         Log.d("TAG", "inpost")
 
-        val api = retrofit.create(FlightApiService::class.java)
-        api.postCommand(command).enqueue(object : Callback<Void> {
-            override fun onResponse(
-                call: Call<Void>,
-                response: Response<Void>
-            ) {
-                if (response.isSuccessful) {
-                    Log.d("TAG", "success")
-                    Log.d("TAG", response.message())
-                } else if (response.code() == 404) {
-                    displayMessage("Oops! Something Is Wrong. Please Try Reconnecting")
-                } else {
-                    displayMessage("Could Not Set Values")
-                }
-            }
-
-            override fun onFailure(call: Call<Void>, t: Throwable) {
+        try {
+            val api = retrofit.create(FlightApiService::class.java)
+            val response: Response<Void> = api.postCommand(command)
+            if (response.isSuccessful) {
+                Log.d("TAG", "success")
+                Log.d("TAG", response.message())
+            } else if (response.code() == 404) {
                 displayMessage("Oops! Something Is Wrong. Please Try Reconnecting")
+            } else {
+                displayMessage("Could Not Set Values")
             }
-        })
+        } catch (e: Exception) {
+            displayMessage("Could Not Get Screenshot. Please Try Reconnecting")
+        }
+
+//        Log.d("TAG", "inpost")
+//
+//        val api = retrofit.create(FlightApiService::class.java)
+//        api.postCommand(command).enqueue(object : Callback<Void> {
+//            override fun onResponse(
+//                call: Call<Void>,
+//                response: Response<Void>
+//            ) {
+//                if (response.isSuccessful) {
+//                    Log.d("TAG", "success")
+//                    Log.d("TAG", response.message())
+//                } else if (response.code() == 404) {
+//                    displayMessage("Oops! Something Is Wrong. Please Try Reconnecting")
+//                } else {
+//                    displayMessage("Could Not Set Values")
+//                }
+//            }
+//
+//            override fun onFailure(call: Call<Void>, t: Throwable) {
+//                displayMessage("Oops! Something Is Wrong. Please Try Reconnecting")
+//            }
+//        })
     }
 
     override fun onStop() {
@@ -301,7 +340,8 @@ class ControlActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         stop = false
-        Thread { displayImage() }.start()
+        setRetrofit()
+        displayImage()
     }
 
 }

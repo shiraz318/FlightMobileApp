@@ -1,6 +1,7 @@
 package com.example.flightmobileapp
 
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.media.Image
@@ -19,6 +20,11 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.gson.GsonBuilder
+import kotlinx.android.synthetic.main.activity_control.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import network.FlightApiService
 import okhttp3.ResponseBody
 import retrofit2.Call
@@ -26,11 +32,14 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.lang.Exception
 
 class MainActivity : AppCompatActivity() {
     lateinit var connectButton: Button
     lateinit var inputUrl: EditText
     private lateinit var urlViewModel: URLViewModel
+    private var viewModelJob = Job()
+    private var uiScope = CoroutineScope(Dispatchers.Main + viewModelJob)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -80,27 +89,41 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    private fun connectToServer(url: String) {
+    private suspend fun connectToServer(url: String) {
         val json = GsonBuilder().setLenient().create()
         val retrofit = Retrofit.Builder().baseUrl(url)
             .addConverterFactory(GsonConverterFactory.create(json)).build()
-        val api = retrofit.create(FlightApiService::class.java)
-
-        api.getScreenshotAsync().enqueue(object : Callback<ResponseBody> {
-            override fun onResponse(call: Call<ResponseBody>, response1: Response<ResponseBody>) {
-                if (response1.isSuccessful) {
-                    val intent = Intent(this@MainActivity, ControlActivity::class.java)
-                    intent.putExtra("Url", url)
-                    startActivity(intent)
-                } else {
-                    displayMessage("Connection failed")
-                }
-            }
-
-            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+        try {
+            val api = retrofit.create(FlightApiService::class.java)
+            val response: Response<ResponseBody> = api.getScreenshotAsync()
+            if (response.isSuccessful) {
+                val intent = Intent(this@MainActivity, ControlActivity::class.java)
+                intent.putExtra("Url", url)
+                startActivity(intent)
+            } else {
                 displayMessage("Connection failed")
             }
-        })
+        } catch (e: Exception) {
+            displayMessage(e.message.toString())
+        }
+
+//        val api = retrofit.create(FlightApiService::class.java)
+//
+//        api.getScreenshotAsync().enqueue(object : Callback<ResponseBody> {
+//            override fun onResponse(call: Call<ResponseBody>, response1: Response<ResponseBody>) {
+//                if (response1.isSuccessful) {
+//                    val intent = Intent(this@MainActivity, ControlActivity::class.java)
+//                    intent.putExtra("Url", url)
+//                    startActivity(intent)
+//                } else {
+//                    displayMessage("Connection failed")
+//                }
+//            }
+//
+//            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+//                displayMessage("Connection failed")
+//            }
+//        })
 
     }
 
@@ -133,12 +156,12 @@ class MainActivity : AppCompatActivity() {
                 urlViewModel.deleteExtra()
             }
             url = "http://10.0.2.2:64673"
-           // connectToServer(url)
+            uiScope.launch { connectToServer(url) }
 
 //            // just for debug - delete it.
-            val intent = Intent(this@MainActivity, ControlActivity::class.java)
-            intent.putExtra("Url", url)
-            startActivity(intent)
+//            val intent = Intent(this@MainActivity, ControlActivity::class.java)
+//            intent.putExtra("Url", url)
+//            startActivity(intent)
         }
     }
 
