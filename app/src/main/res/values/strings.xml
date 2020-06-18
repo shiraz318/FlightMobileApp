@@ -4,4 +4,6 @@
     <string name="url_text">Type URL..</string>
     <string name="rudder_text">Rudder</string>
     <string name="throttle_text">Throttle</string>
+    <string name="aileron_text">Aileron</string>
+    <string name="elevator_text">Elevator</string>
 </resources>
