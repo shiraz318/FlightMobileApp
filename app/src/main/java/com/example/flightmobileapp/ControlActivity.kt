@@ -1,6 +1,7 @@
 package com.example.flightmobileapp
 
 
+import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.graphics.BitmapFactory
 import android.os.Bundle
@@ -10,6 +11,7 @@ import android.widget.SeekBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.gson.GsonBuilder
+import io.reactivex.internal.schedulers.SchedulerPoolFactory.start
 import kotlinx.android.synthetic.main.activity_control.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -46,6 +48,7 @@ class ControlActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_control)
         setViews()
+        setAnnimation()
         initCommand()
     }
 
@@ -72,7 +75,7 @@ class ControlActivity : AppCompatActivity() {
     }
 
     private fun setAnimationJJoystick() {
-       // val animation =  ObjectAnimator.ofFloat(joystickView, "innerCenterX",  )
+        // val animation =  ObjectAnimator.ofFloat(joystickView, "innerCenterX",  )
     }
 
     private fun setRetrofit() {
@@ -181,7 +184,11 @@ class ControlActivity : AppCompatActivity() {
                 displayMessage("Could Not Get Screenshot. Please Try Reconnecting")
             }
         } catch (e: Exception) {
-            displayMessage("Could Not Get Screenshot. Please Try Reconnecting")
+            if (e.message.toString() == "timeout") {
+                displayMessage("Getting Screenshot Is Taking Too Long. Please Try Reconnecting")
+            } else {
+                displayMessage("Could Not Get Screenshot. Please Try Reconnecting")
+            }
         }
     }
 
@@ -263,16 +270,41 @@ class ControlActivity : AppCompatActivity() {
         try {
             val api = retrofit.create(FlightApiService::class.java)
             val response: Response<Void> = api.postCommand(command)
-            if (response.isSuccessful) {
-                Log.d("TAG", "success")
-                Log.d("TAG", response.message())
-            } else if (response.code() == 404) {
-                displayMessage("Oops! Something Is Wrong. Please Try Reconnecting")
-            } else {
+            if (response.code() == 404) {
+                displayMessage(
+                    "Server Connection With The Simulator Encounter Problems." +
+                            " Please Try Reconnecting"
+                )
+            } else if (!response.isSuccessful) {
                 displayMessage("Could Not Set Values")
             }
         } catch (e: Exception) {
-            displayMessage("Could Not Get Screenshot. Please Try Reconnecting")
+            if (e.message.toString() == "timeout") {
+                displayMessage("Setting Values Is Taking Too Long. Please Try Reconnecting")
+            } else {
+                displayMessage(
+                    "Server Connection With The Simulator Encounter Problems." +
+                            " Please Try Reconnecting"
+                )
+            }
+        }
+    }
+
+    fun setAnnimation() {
+
+        val XAnim =
+            ObjectAnimator.ofFloat(joystickView, "innerCenterX", joystickView.innerCenterX, 100f)
+                .apply {
+                    duration = 250
+                }
+        val YAnim =
+            ObjectAnimator.ofFloat(joystickView, "innerCenterY", joystickView.innerCenterY, 100f)
+                .apply {
+                    duration = 250
+                }
+        AnimatorSet().apply {
+            play(XAnim).with(YAnim)
+            start()
         }
     }
 
@@ -281,16 +313,18 @@ class ControlActivity : AppCompatActivity() {
         stop = true
     }
 
-    override fun onPause() {
-        super.onPause()
-        stop = true
-    }
-
     override fun onResume() {
         super.onResume()
         stop = false
         setRetrofit()
         displayImage()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        val img = intent.getByteArrayExtra("Image") ?: return
+        val b = img.size.let { BitmapFactory.decodeByteArray(img, 0, it) }
+        runOnUiThread { screenshot.setImageBitmap(b) }
     }
 
 }

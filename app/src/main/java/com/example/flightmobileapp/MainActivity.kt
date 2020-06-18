@@ -69,7 +69,7 @@ class MainActivity : AppCompatActivity() {
                         val url = urlViewModel.getUrlByPosition(position)
 //                        urlViewModel.updatePosition(position)
                         if (url == null) {
-                            displayMessage("Error getting the required url")
+                            displayMessage("Error Getting The Required URL")
                         } else {
                             inputUrl.setText(url)
                             //urlViewModel.initPosition(url)
@@ -89,13 +89,18 @@ class MainActivity : AppCompatActivity() {
             val response: Response<ResponseBody> = api.getScreenshotAsync()
             if (response.isSuccessful) {
                 val intent = Intent(this@MainActivity, ControlActivity::class.java)
+                intent.putExtra("Image", response.body()!!.bytes())
                 intent.putExtra("Url", url)
                 startActivity(intent)
             } else {
-                displayMessage("Connection failed")
+                displayMessage("Connection Failed")
             }
         } catch (e: Exception) {
-            displayMessage(e.message.toString())
+            if (e.message.toString() == "timeout") {
+                displayMessage("Timeout Connecting To The Server. Please Try Again")
+            } else {
+                displayMessage("Connection Failed")
+            }
         }
 
     }
@@ -113,8 +118,7 @@ class MainActivity : AppCompatActivity() {
     private fun connect(inputUrl: EditText) {
         // Server stuff.
         if (TextUtils.isEmpty(inputUrl.text)) {
-
-            displayMessage("URL input is empty. Please enter URL")
+            displayMessage("URL Input Is Empty. Please Enter URL")
         } else {
             var url = inputUrl.text.toString()
             val urlItem = URLItem(url, 0)
@@ -147,8 +151,8 @@ class MainActivity : AppCompatActivity() {
         val json = GsonBuilder().setLenient().create()
 
         val httpClient = OkHttpClient.Builder()
-            .callTimeout(12, TimeUnit.SECONDS)
-            .connectTimeout(12, TimeUnit.SECONDS)
+            .callTimeout(15, TimeUnit.SECONDS)
+            .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(10, TimeUnit.SECONDS)
             .writeTimeout(10, TimeUnit.SECONDS)
 

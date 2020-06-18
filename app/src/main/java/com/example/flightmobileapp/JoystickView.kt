@@ -23,21 +23,7 @@ class JoystickView @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
-//    var innerCenterX: Float
-//        get() {
-//            return innerCenterX
-//        }
-//        set(value) {
-//            innerCenterX = value
-//        }
-//
-//    var innerCenterY: Float
-//        get() {
-//            return innerCenterY
-//        }
-//        set(value) {
-//            innerCenterY = value
-//        }
+
     private var innerRadius = 0.0f
     private var startX = 0.0f
     private var startY = 0.0f
@@ -46,7 +32,20 @@ class JoystickView @JvmOverloads constructor(
     private var outerRadius: Float = 0.0f
     private var notifyChanges: () -> Unit = {}
     private var applyAnimation: () -> Unit = {}
-
+    var innerCenterX: Float
+        get() {
+            return innerCenter.x
+        }
+        set(value) {
+            innerCenter.x = value
+        }
+    var innerCenterY: Float
+        get() {
+            return innerCenter.y
+        }
+        set(value) {
+            innerCenter.y = value
+        }
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
         textAlign = Paint.Align.CENTER
