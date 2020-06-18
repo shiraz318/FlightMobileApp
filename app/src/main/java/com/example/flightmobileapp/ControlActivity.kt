@@ -49,7 +49,6 @@ class ControlActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_control)
         setViews()
-        setAnnimation()
         initCommand()
     }
 
@@ -74,11 +73,6 @@ class ControlActivity : AppCompatActivity() {
         joystickView = findViewById(R.id.joystickView)
         joystickView.setFunction { onChangeJoystick() }
         initializeSeekBars()
-        setAnimationJJoystick()
-    }
-
-    private fun setAnimationJJoystick() {
-        // val animation =  ObjectAnimator.ofFloat(joystickView, "innerCenterX",  )
     }
 
     // Builds the retrofit
@@ -323,24 +317,6 @@ class ControlActivity : AppCompatActivity() {
                             " Please Try Reconnecting"
                 )
             }
-        }
-    }
-
-    fun setAnnimation() {
-
-        val XAnim =
-            ObjectAnimator.ofFloat(joystickView, "innerCenterX", joystickView.innerCenterX, 100f)
-                .apply {
-                    duration = 250
-                }
-        val YAnim =
-            ObjectAnimator.ofFloat(joystickView, "innerCenterY", joystickView.innerCenterY, 100f)
-                .apply {
-                    duration = 250
-                }
-        AnimatorSet().apply {
-            play(XAnim).with(YAnim)
-            start()
         }
     }
 

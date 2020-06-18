@@ -27,8 +27,6 @@ class JoystickView @JvmOverloads constructor(
 ) : View(context, attrs, defStyleAttr) {
 
     private var innerRadius = 0.0f
-    private var startX = 0.0f
-    private var startY = 0.0f
     private var innerCenter: PointF = PointF()
     private var outerCenter: PointF = PointF()
     private var outerRadius: Float = 0.0f
@@ -61,6 +59,7 @@ class JoystickView @JvmOverloads constructor(
         set(value) {
             outerCenter.y = value
         }
+
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
         textAlign = Paint.Align.CENTER
@@ -68,6 +67,7 @@ class JoystickView @JvmOverloads constructor(
         typeface = Typeface.create("", Typeface.BOLD)
     }
 
+    // Happen when the size is changed - we need to reCalculate the center of the circles.
     override fun onSizeChanged(width: Int, height: Int, oldWidth: Int, oldHeight: Int) {
         innerRadius = (min(width.toDouble(), height.toDouble()) / 4).toFloat()
         innerCenter = PointF(width / 2.0f, height / 2.0f)
@@ -75,6 +75,7 @@ class JoystickView @JvmOverloads constructor(
         outerRadius = (min(width.toDouble(), height.toDouble()) / 2).toFloat()
     }
 
+    // Return the minimum value from the given values.
     private fun min(num1: Double, num2: Double): Double {
         if (num1 < num2) {
             return num1
@@ -86,7 +87,7 @@ class JoystickView @JvmOverloads constructor(
         isClickable = true
     }
 
-
+    // Draw the circles on a given canvas.
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
@@ -98,7 +99,7 @@ class JoystickView @JvmOverloads constructor(
         canvas.drawCircle(innerCenter.x, innerCenter.y, innerRadius, paint)
     }
 
-    // Find the closeset intersection point of the given point and the inner circle.
+    // Find the closest intersection point of the given point and the inner circle.
     private fun closestIntersection(lineEnd: PointF): PointF {
         // Find the intersections point.
         val points: Array<PointF> = calculateIntersections(lineEnd)
@@ -143,6 +144,7 @@ class JoystickView @JvmOverloads constructor(
         return arrayOf(intersection1, intersection2)
     }
 
+    // Calculate the update position in the limits of the outer circle and returns it.
     private fun updatePosition(x: Float, y: Float): PointF {
         var isOut = false
         if (y < outerCenter.y - outerRadius + innerRadius) {
@@ -161,15 +163,17 @@ class JoystickView @JvmOverloads constructor(
         return closestIntersection(PointF(x, y))
     }
 
-
+    // Happens when user touch the inner circle of the joystick.
     private fun touchMove(x: Float, y: Float) {
-        innerCenter = updatePosition(x, y);
+        // Update the location of the inner circle of the joystick.
+        innerCenter = updatePosition(x, y)
+        // Notify that the inner circle of the joystick position is changed.
         notifyChanges()
-
         // Will render again the screen.
         invalidate()
     }
 
+    // Reset the inner circle center to the initial position.
     private fun resetCenter() {
         // operate animation.
         val XAnim =
@@ -199,59 +203,57 @@ class JoystickView @JvmOverloads constructor(
         }
 
         innerCenter = outerCenter
-//        innerCenterX = innerCenter.x
-//        innerCenterY = innerCenter.y
+        // Notify that the inner circle of the joystick position is changed.
         notifyChanges()
         // Will render again the screen.
         invalidate()
     }
 
-    private fun updateCurrent(x: Float, y: Float): Boolean {
-        startX = x
-        startY = y
-        return true
-    }
-
-    @SuppressLint("ClickableViewAccessibility")
+    // Happens when user touch the inner circle of the joystick.
     override fun onTouchEvent(event: MotionEvent?): Boolean {
-
         if (event == null) {
             return true
         }
         when (event.action) {
-            MotionEvent.ACTION_DOWN -> return updateCurrent(event.x, event.y)
+            MotionEvent.ACTION_DOWN -> return true
             MotionEvent.ACTION_MOVE -> touchMove(event.x, event.y)
             MotionEvent.ACTION_UP -> resetCenter()
         }
         return true
     }
 
+    // Get the aileron value represented by the innerCenter.x
     fun getAileron(): Float {
         return innerCenter.x
     }
 
+    // Get the elevator value represented by the innerCenter.y
     fun getElevator(): Float {
         return innerCenter.y
     }
 
+    // Set the notifyChanges function.
     fun setFunction(function: () -> Unit) {
         notifyChanges = function
     }
 
+    // Get the outer radius.
     fun getOuterRadius(): Float {
         return outerRadius
     }
 
+    // Get the inner radius.
     fun getInnerRadius(): Float {
         return innerRadius
     }
 
+    // Get the outerCenter.x
     fun getCenterX(): Float {
         return outerCenter.x
     }
 
+    // Get the outerCenter.y
     fun getCenterY(): Float {
         return outerCenter.y
     }
-
 }
