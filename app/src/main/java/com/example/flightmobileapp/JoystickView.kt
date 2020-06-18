@@ -1,5 +1,7 @@
 package com.example.flightmobileapp
 
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.*
@@ -31,8 +33,6 @@ class JoystickView @JvmOverloads constructor(
     private var outerCenter: PointF = PointF()
     private var outerRadius: Float = 0.0f
     private var notifyChanges: () -> Unit = {}
-    private var applyAnimation: () -> Unit = {}
-    private lateinit var c: Unit
     var innerCenterX: Float
         get() {
             return innerCenter.x
@@ -47,6 +47,20 @@ class JoystickView @JvmOverloads constructor(
         set(value) {
             innerCenter.y = value
         }
+    var outerCenterX: Float
+        get() {
+            return outerCenter.x
+        }
+        set(value) {
+            outerCenter.x = value
+        }
+    var outerCenterY: Float
+        get() {
+            return outerCenter.y
+        }
+        set(value) {
+            outerCenter.y = value
+        }
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
         textAlign = Paint.Align.CENTER
@@ -57,9 +71,6 @@ class JoystickView @JvmOverloads constructor(
     override fun onSizeChanged(width: Int, height: Int, oldWidth: Int, oldHeight: Int) {
         innerRadius = (min(width.toDouble(), height.toDouble()) / 4).toFloat()
         innerCenter = PointF(width / 2.0f, height / 2.0f)
-//        innerCenterX = innerCenter.x
-//        innerCenterY = innerCenter.y
-        // outerCenter = innerCenter
         outerCenter = PointF(width / 2.0f, height / 2.0f)
         outerRadius = (min(width.toDouble(), height.toDouble()) / 2).toFloat()
     }
@@ -84,7 +95,7 @@ class JoystickView @JvmOverloads constructor(
         canvas.drawCircle(outerCenter.x, outerCenter.y, outerRadius, paint)
         // Draw the inner circle.
         paint.color = Color.LTGRAY
-        c = canvas.drawCircle(innerCenter.x, innerCenter.y, innerRadius, paint)
+        canvas.drawCircle(innerCenter.x, innerCenter.y, innerRadius, paint)
     }
 
     // Find the closeset intersection point of the given point and the inner circle.
@@ -153,8 +164,6 @@ class JoystickView @JvmOverloads constructor(
 
     private fun touchMove(x: Float, y: Float) {
         innerCenter = updatePosition(x, y);
-//        innerCenterX = innerCenter.x
-//        innerCenterY = innerCenter.y
         notifyChanges()
 
         // Will render again the screen.
@@ -163,7 +172,32 @@ class JoystickView @JvmOverloads constructor(
 
     private fun resetCenter() {
         // operate animation.
-        applyAnimation()
+        val XAnim =
+            ObjectAnimator.ofFloat(
+                this,
+                "innerCenterX",
+                outerCenterX,
+                innerCenterX
+
+            )
+                .apply {
+                    duration = 250
+                }
+        val YAnim =
+            ObjectAnimator.ofFloat(
+                this,
+                "innerCenterY",
+                outerCenterY,
+                innerCenterY
+            )
+                .apply {
+                    duration = 250
+                }
+        AnimatorSet().apply {
+            play(XAnim).with(YAnim)
+            start()
+        }
+
         innerCenter = outerCenter
 //        innerCenterX = innerCenter.x
 //        innerCenterY = innerCenter.y
@@ -218,10 +252,6 @@ class JoystickView @JvmOverloads constructor(
 
     fun getCenterY(): Float {
         return outerCenter.y
-    }
-
-    fun getC(): Unit {
-        return c
     }
 
 }
