@@ -8,6 +8,9 @@ import kotlinx.coroutines.*
 // instead of the whole database, because you only need access to the DAO
 class URLRepository(private val urlDao: URLDao) {
 
+    private var viewModelJob = Job()
+    private var uiScope = CoroutineScope(Dispatchers.Main + viewModelJob)
+
     // Room executes all queries on a separate thread.
     // Observed LiveData will notify the observer when the data has changed.
     val allWords: LiveData<List<URLItem>> = urlDao.getUrlsOrderedByPosition()

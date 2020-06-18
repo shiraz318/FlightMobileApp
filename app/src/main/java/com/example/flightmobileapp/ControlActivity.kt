@@ -1,6 +1,7 @@
 package com.example.flightmobileapp
 
 
+import android.animation.ObjectAnimator
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Log
@@ -67,6 +68,11 @@ class ControlActivity : AppCompatActivity() {
         joystickView = findViewById(R.id.joystickView)
         joystickView.setFunction { onChangeJoystick() }
         initializeSeekBars()
+        setAnimationJJoystick()
+    }
+
+    private fun setAnimationJJoystick() {
+       // val animation =  ObjectAnimator.ofFloat(joystickView, "innerCenterX",  )
     }
 
     private fun setRetrofit() {

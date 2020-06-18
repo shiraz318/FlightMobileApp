@@ -19,11 +19,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import network.FlightApiService
+import okhttp3.OkHttpClient
 import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.lang.Exception
+import java.util.concurrent.TimeUnit
 
 class MainActivity : AppCompatActivity() {
     lateinit var connectButton: Button
@@ -31,6 +33,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var urlViewModel: URLViewModel
     private var viewModelJob = Job()
     private var uiScope = CoroutineScope(Dispatchers.Main + viewModelJob)
+    lateinit var retrofit: Retrofit
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -80,9 +83,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private suspend fun connectToServer(url: String) {
-        val json = GsonBuilder().setLenient().create()
-        val retrofit = Retrofit.Builder().baseUrl(url)
-            .addConverterFactory(GsonConverterFactory.create(json)).build()
+        setRetrofit(url)
         try {
             val api = retrofit.create(FlightApiService::class.java)
             val response: Response<ResponseBody> = api.getScreenshotAsync()
@@ -141,6 +142,24 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         inputUrl.setText("")
     }
+
+    private fun setRetrofit(url: String) {
+        val json = GsonBuilder().setLenient().create()
+
+        val httpClient = OkHttpClient.Builder()
+            .callTimeout(12, TimeUnit.SECONDS)
+            .connectTimeout(12, TimeUnit.SECONDS)
+            .readTimeout(10, TimeUnit.SECONDS)
+            .writeTimeout(10, TimeUnit.SECONDS)
+
+        val builder: Retrofit.Builder = Retrofit.Builder()
+            .baseUrl(url)
+            .addConverterFactory(GsonConverterFactory.create(json))
+
+        builder.client(httpClient.build())
+        retrofit = builder.build()
+    }
+
 }
 
 
