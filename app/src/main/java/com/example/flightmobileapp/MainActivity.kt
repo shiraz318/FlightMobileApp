@@ -133,12 +133,12 @@ class MainActivity : AppCompatActivity() {
                 urlViewModel.deleteExtra()
             }
             url = "http://10.0.2.2:64673"
-            uiScope.launch { connectToServer(url) }
+            //uiScope.launch { connectToServer(url) }
 
 //            // just for debug - delete it.
-//            val intent = Intent(this@MainActivity, ControlActivity::class.java)
-//            intent.putExtra("Url", url)
-//            startActivity(intent)
+            val intent = Intent(this@MainActivity, ControlActivity::class.java)
+            intent.putExtra("Url", url)
+            startActivity(intent)
         }
     }
 

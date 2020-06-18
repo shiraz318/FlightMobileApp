@@ -32,6 +32,7 @@ class JoystickView @JvmOverloads constructor(
     private var outerRadius: Float = 0.0f
     private var notifyChanges: () -> Unit = {}
     private var applyAnimation: () -> Unit = {}
+    private lateinit var c: Unit
     var innerCenterX: Float
         get() {
             return innerCenter.x
@@ -58,7 +59,8 @@ class JoystickView @JvmOverloads constructor(
         innerCenter = PointF(width / 2.0f, height / 2.0f)
 //        innerCenterX = innerCenter.x
 //        innerCenterY = innerCenter.y
-        outerCenter = innerCenter
+        // outerCenter = innerCenter
+        outerCenter = PointF(width / 2.0f, height / 2.0f)
         outerRadius = (min(width.toDouble(), height.toDouble()) / 2).toFloat()
     }
 
@@ -82,7 +84,7 @@ class JoystickView @JvmOverloads constructor(
         canvas.drawCircle(outerCenter.x, outerCenter.y, outerRadius, paint)
         // Draw the inner circle.
         paint.color = Color.LTGRAY
-        canvas.drawCircle(innerCenter.x, innerCenter.y, innerRadius, paint)
+        c = canvas.drawCircle(innerCenter.x, innerCenter.y, innerRadius, paint)
     }
 
     // Find the closeset intersection point of the given point and the inner circle.
@@ -216,6 +218,10 @@ class JoystickView @JvmOverloads constructor(
 
     fun getCenterY(): Float {
         return outerCenter.y
+    }
+
+    fun getC(): Unit {
+        return c
     }
 
 }
