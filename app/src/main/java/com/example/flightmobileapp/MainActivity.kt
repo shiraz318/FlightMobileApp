@@ -35,6 +35,7 @@ class MainActivity : AppCompatActivity() {
     private var uiScope = CoroutineScope(Dispatchers.Main + viewModelJob)
     lateinit var retrofit: Retrofit
 
+    // Add another behaviour to onCreate
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -46,6 +47,7 @@ class MainActivity : AppCompatActivity() {
         roomSetting()
     }
 
+    // Initial the Room
     private fun roomSetting() {
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerview)
         val adapter = URLListAdapter(this)
@@ -61,6 +63,7 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    // Operates when row from the list is clicked
     private fun setOnClickRoom(recyclerView: RecyclerView) {
         recyclerView.addOnItemTouchListener(
             RecyclerItemClickListener(this, recyclerView,
@@ -71,6 +74,7 @@ class MainActivity : AppCompatActivity() {
                         if (url == null) {
                             displayMessage("Error Getting The Required URL")
                         } else {
+                            // Display the given url
                             inputUrl.setText(url)
                             //urlViewModel.initPosition(url)
                         }
@@ -82,14 +86,18 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    // Connects to the given url address
     private suspend fun connectToServer(url: String) {
         setRetrofit(url)
         try {
             val api = retrofit.create(FlightApiService::class.java)
             val response: Response<ResponseBody> = api.getScreenshotAsync()
             if (response.isSuccessful) {
+                //Go to the control view
                 val intent = Intent(this@MainActivity, ControlActivity::class.java)
+                // Send the given screenshot
                 intent.putExtra("Image", response.body()!!.bytes())
+                // Send the url
                 intent.putExtra("Url", url)
                 startActivity(intent)
             } else {
@@ -105,6 +113,7 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    // Display toast with a given message
     private fun displayMessage(message: String) {
         val toast = Toast.makeText(
             applicationContext,
@@ -115,12 +124,14 @@ class MainActivity : AppCompatActivity() {
         toast.show()
     }
 
+    // Operates when the connect button is clicked
     private fun connect(inputUrl: EditText) {
-        // Server stuff.
+        // Empty input
         if (TextUtils.isEmpty(inputUrl.text)) {
             displayMessage("URL Input Is Empty. Please Enter URL")
         } else {
             var url = inputUrl.text.toString()
+            // Update the url list
             val urlItem = URLItem(url, 0)
             if (urlViewModel.alreadyExists(url) == 1) {
                 val position = urlViewModel.getPositionByUrl(url)
@@ -132,6 +143,7 @@ class MainActivity : AppCompatActivity() {
                 urlViewModel.insert(urlItem)
                 urlViewModel.deleteExtra()
             }
+            // connect to the url address
             url = "http://10.0.2.2:64673"
             //uiScope.launch { connectToServer(url) }
 
@@ -142,11 +154,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // Add another behaviour to onCreate
     override fun onResume() {
         super.onResume()
         inputUrl.setText("")
     }
 
+    // Builds the retrofit
     private fun setRetrofit(url: String) {
         val json = GsonBuilder().setLenient().create()
 

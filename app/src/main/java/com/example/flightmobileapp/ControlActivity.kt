@@ -44,7 +44,7 @@ class ControlActivity : AppCompatActivity() {
     lateinit var joystickView: JoystickView
     private var stop = false
 
-    // Add another to onCreate
+    // Add another behaviour to onCreate
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_control)
@@ -344,14 +344,14 @@ class ControlActivity : AppCompatActivity() {
         }
     }
 
-    // Add another to onStop
+    // Add another behaviour to onStop
     override fun onStop() {
         super.onStop()
         // Stop the loop that gets screenshots
         stop = true
     }
 
-    // Add another to onResume
+    // Add another behaviour to onResume
     override fun onResume() {
         super.onResume()
         // Operates the loop that gets screenshots
@@ -360,7 +360,7 @@ class ControlActivity : AppCompatActivity() {
         displayImage()
     }
 
-    // Add another to onStart
+    // Add another behaviour to onStart
     override fun onStart() {
         super.onStart()
         // Display the first screenshot from the Main Activity
