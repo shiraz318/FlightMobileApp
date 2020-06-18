@@ -23,21 +23,21 @@ class JoystickView @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
-    var innerCenterX: Float
-        get() {
-            return innerCenterX
-        }
-        set(value) {
-            innerCenterX = value
-        }
-
-    var innerCenterY: Float
-        get() {
-            return innerCenterY
-        }
-        set(value) {
-            innerCenterY = value
-        }
+//    var innerCenterX: Float
+//        get() {
+//            return innerCenterX
+//        }
+//        set(value) {
+//            innerCenterX = value
+//        }
+//
+//    var innerCenterY: Float
+//        get() {
+//            return innerCenterY
+//        }
+//        set(value) {
+//            innerCenterY = value
+//        }
     private var innerRadius = 0.0f
     private var startX = 0.0f
     private var startY = 0.0f
@@ -57,8 +57,8 @@ class JoystickView @JvmOverloads constructor(
     override fun onSizeChanged(width: Int, height: Int, oldWidth: Int, oldHeight: Int) {
         innerRadius = (min(width.toDouble(), height.toDouble()) / 4).toFloat()
         innerCenter = PointF(width / 2.0f, height / 2.0f)
-        innerCenterX = innerCenter.x
-        innerCenterY = innerCenter.y
+//        innerCenterX = innerCenter.x
+//        innerCenterY = innerCenter.y
         outerCenter = innerCenter
         outerRadius = (min(width.toDouble(), height.toDouble()) / 2).toFloat()
     }
@@ -152,8 +152,8 @@ class JoystickView @JvmOverloads constructor(
 
     private fun touchMove(x: Float, y: Float) {
         innerCenter = updatePosition(x, y);
-        innerCenterX = innerCenter.x
-        innerCenterY = innerCenter.y
+//        innerCenterX = innerCenter.x
+//        innerCenterY = innerCenter.y
         notifyChanges()
 
         // Will render again the screen.
@@ -164,8 +164,8 @@ class JoystickView @JvmOverloads constructor(
         // operate animation.
         applyAnimation()
         innerCenter = outerCenter
-        innerCenterX = innerCenter.x
-        innerCenterY = innerCenter.y
+//        innerCenterX = innerCenter.x
+//        innerCenterY = innerCenter.y
         notifyChanges()
         // Will render again the screen.
         invalidate()
