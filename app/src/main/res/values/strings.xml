@@ -6,4 +6,7 @@
     <string name="throttle_text">Throttle</string>
     <string name="aileron_text">Aileron</string>
     <string name="elevator_text">Elevator</string>
+    <string name="zero">0</string>
+    <string name="one">1</string>
+    <string name="negative_one">-1</string>
 </resources>
