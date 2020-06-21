@@ -1,4 +1,4 @@
-package com.example.flightmobileapp
+package activities
 
 import android.content.Intent
 import android.os.Bundle
@@ -13,6 +13,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.flightmobileapp.R
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -24,6 +25,10 @@ import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import room.RecyclerItemClickListener
+import room.URLItem
+import room.URLListAdapter
+import room.URLViewModel
 import java.lang.Exception
 import java.util.concurrent.TimeUnit
 
@@ -70,14 +75,13 @@ class MainActivity : AppCompatActivity() {
                 object : RecyclerItemClickListener.OnItemClickListener {
                     override fun onItemClick(view: View, position: Int) {
                         val url = urlViewModel.getUrlByPosition(position)
-//                        urlViewModel.updatePosition(position)
-                        if (url == null) {
-                            displayMessage("Error Getting The Required URL")
-                        } else {
-                            // Display the given url
-                            inputUrl.setText(url)
-                            //urlViewModel.initPosition(url)
-                        }
+//                        if (url == null) {
+//                            displayMessage("Error Getting The Required URL")
+//                        } else {
+                        // Display the given url
+                        inputUrl.setText(url)
+                        //urlViewModel.initPosition(url)
+                        // }
                     }
 
                     override fun onItemLongClick(view: View?, position: Int) {
@@ -144,13 +148,13 @@ class MainActivity : AppCompatActivity() {
                 urlViewModel.deleteExtra()
             }
             // connect to the url address
-            url = "http://10.0.2.2:64673"
-///            uiScope.launch { connectToServer(url) }
+            // url = "http://10.0.2.2:64673"
+            uiScope.launch { connectToServer(url) }
 
 //            // just for debug - delete it.
-            val intent = Intent(this@MainActivity, ControlActivity::class.java)
-            intent.putExtra("Url", url)
-            startActivity(intent)
+//            val intent = Intent(this@MainActivity, ControlActivity::class.java)
+//            intent.putExtra("Url", url)
+//            startActivity(intent)
         }
     }
 
@@ -165,8 +169,8 @@ class MainActivity : AppCompatActivity() {
         val json = GsonBuilder().setLenient().create()
 
         val httpClient = OkHttpClient.Builder()
-            .callTimeout(15, TimeUnit.SECONDS)
-            .connectTimeout(15, TimeUnit.SECONDS)
+            .callTimeout(12, TimeUnit.SECONDS)
+            .connectTimeout(12, TimeUnit.SECONDS)
             .readTimeout(10, TimeUnit.SECONDS)
             .writeTimeout(10, TimeUnit.SECONDS)
 

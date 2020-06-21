@@ -1,17 +1,16 @@
-package com.example.flightmobileapp
+package activities
 
-
-import android.animation.AnimatorSet
-import android.animation.ObjectAnimator
 import android.graphics.BitmapFactory
 import android.os.Bundle
-import android.util.Log
 import android.view.Gravity
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.example.flightmobileapp.Command
+import joystick.JoystickData
+import joystick.JoystickView
+import com.example.flightmobileapp.R
 import com.google.gson.GsonBuilder
-import io.reactivex.internal.schedulers.SchedulerPoolFactory.start
 import kotlinx.android.synthetic.main.activity_control.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -235,10 +234,13 @@ class ControlActivity : AppCompatActivity() {
                 // Check the distance it moved
                 val difference = calculatePartMove(progress.toFloat(), throttle, 1.0f)
                 // In case that the difference is bigger then 1% send a new command
-                postIfNeeded(
-                    difference >= 1,
-                    progress.toFloat() / 100, progress.toFloat()
-                )
+                if (difference >= 1) {
+                    command.throttle = progress.toFloat() / 100
+                    throttle = progress.toFloat()
+                    // Send a new command
+                    uiScope.launch { sendCommand() }
+                }
+
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar) {
@@ -344,5 +346,4 @@ class ControlActivity : AppCompatActivity() {
         val b = img.size.let { BitmapFactory.decodeByteArray(img, 0, it) }
         runOnUiThread { screenshot.setImageBitmap(b) }
     }
-
 }

@@ -1,14 +1,12 @@
-package com.example.flightmobileapp
+package room
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.viewModelScope
-import androidx.room.Query
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 
 
 class URLViewModel(application: Application) : AndroidViewModel(application) {
@@ -22,7 +20,10 @@ class URLViewModel(application: Application) : AndroidViewModel(application) {
     val allUrls: LiveData<List<URLItem>>
 
     init {
-        val urlsDao = URLRoomDatabase.getDatabase(application, viewModelScope).urlDao()
+        val urlsDao = URLRoomDatabase.getDatabase(
+            application,
+            viewModelScope
+        ).urlDao()
         repository = URLRepository(urlsDao)
         allUrls = repository.allWords
     }

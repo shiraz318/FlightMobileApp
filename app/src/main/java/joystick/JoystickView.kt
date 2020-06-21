@@ -1,22 +1,10 @@
-package com.example.flightmobileapp
+package joystick
 
-import android.animation.AnimatorSet
-import android.animation.ObjectAnimator
-import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
-import android.util.Log
 import android.view.MotionEvent
 import android.view.View
-import android.view.animation.AnimationUtils
-import android.widget.Toast
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
-import java.lang.System.out
-import kotlin.math.pow
 import kotlin.math.sqrt
 
 
@@ -176,31 +164,29 @@ class JoystickView @JvmOverloads constructor(
     // Reset the inner circle center to the initial position.
     private fun resetCenter() {
         // operate animation.
-        val XAnim =
-            ObjectAnimator.ofFloat(
-                this,
-                "innerCenterX",
-                outerCenterX,
-                innerCenterX
-
-            )
-                .apply {
-                    duration = 250
-                }
-        val YAnim =
-            ObjectAnimator.ofFloat(
-                this,
-                "innerCenterY",
-                outerCenterY,
-                innerCenterY
-            )
-                .apply {
-                    duration = 250
-                }
-        AnimatorSet().apply {
-            play(XAnim).with(YAnim)
-            start()
-        }
+//        val XAnim =
+//            ObjectAnimator.ofFloat(
+//                this,
+//                "innerCenterX",
+//                350.0f
+//
+//            )
+//                .apply {
+//                    duration = 250
+//                }
+//        val YAnim =
+//            ObjectAnimator.ofFloat(
+//                this,
+//                "innerCenterY",
+//                350.0f
+//            )
+//                .apply {
+//                    duration = 250
+//                }
+//        AnimatorSet().apply {
+//            play(XAnim).with(YAnim)
+//            start()
+//        }
 
         innerCenter = outerCenter
         // Notify that the inner circle of the joystick position is changed.

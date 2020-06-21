@@ -1,4 +1,4 @@
-package com.example.flightmobileapp
+package joystick
 
 data class JoystickData
     (
