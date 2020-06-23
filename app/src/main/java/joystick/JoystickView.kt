@@ -1,5 +1,7 @@
 package joystick
 
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
@@ -19,6 +21,7 @@ class JoystickView @JvmOverloads constructor(
     private var outerCenter: PointF = PointF()
     private var outerRadius: Float = 0.0f
     private var notifyChanges: () -> Unit = {}
+
     var innerCenterX: Float
         get() {
             return innerCenter.x
@@ -33,20 +36,7 @@ class JoystickView @JvmOverloads constructor(
         set(value) {
             innerCenter.y = value
         }
-    var outerCenterX: Float
-        get() {
-            return outerCenter.x
-        }
-        set(value) {
-            outerCenter.x = value
-        }
-    var outerCenterY: Float
-        get() {
-            return outerCenter.y
-        }
-        set(value) {
-            outerCenter.y = value
-        }
+
 
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
@@ -163,36 +153,41 @@ class JoystickView @JvmOverloads constructor(
 
     // Reset the inner circle center to the initial position.
     private fun resetCenter() {
-        // operate animation.
-//        val XAnim =
-//            ObjectAnimator.ofFloat(
-//                this,
-//                "innerCenterX",
-//                350.0f
-//
-//            )
-//                .apply {
-//                    duration = 250
-//                }
-//        val YAnim =
-//            ObjectAnimator.ofFloat(
-//                this,
-//                "innerCenterY",
-//                350.0f
-//            )
-//                .apply {
-//                    duration = 250
-//                }
-//        AnimatorSet().apply {
-//            play(XAnim).with(YAnim)
-//            start()
-//        }
 
-        innerCenter = outerCenter
+        // Apply animation.
+        applyAnimation()
         // Notify that the inner circle of the joystick position is changed.
         notifyChanges()
         // Will render again the screen.
         invalidate()
+    }
+
+    // Animation of the joystick.
+    private fun applyAnimation() {
+        val xAnim =
+            ObjectAnimator.ofFloat(
+                this,
+                "innerCenterX",
+                outerCenter.x
+
+            )
+                .apply {
+                    duration = 200
+                }
+        val yAnim =
+            ObjectAnimator.ofFloat(
+                this,
+                "innerCenterY",
+                outerCenter.y
+            )
+                .apply {
+                    duration = 200
+                }
+        AnimatorSet().apply {
+            play(xAnim).with(yAnim)
+            innerCenter = outerCenter
+            start()
+        }
     }
 
     // Happens when user touch the inner circle of the joystick.

@@ -2,7 +2,9 @@ package activities
 
 import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.util.Log
 import android.view.Gravity
+import android.view.animation.AnimationUtils
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -24,6 +26,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.lang.Exception
 import java.lang.Thread.sleep
+import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 
@@ -42,6 +45,7 @@ class ControlActivity : AppCompatActivity() {
     lateinit var retrofit: Retrofit
     lateinit var joystickView: JoystickView
     private var stop = false
+    private lateinit var queue: Queue<String>
 
     // Add another behaviour to onCreate
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,15 +57,46 @@ class ControlActivity : AppCompatActivity() {
 
     // Display toast with a given message
     private fun displayMessage(message: String) {
-        if (!stop) {
-            val toast = Toast.makeText(
-                applicationContext,
-                message,
-                Toast.LENGTH_LONG
-            )
-            toast.setGravity(Gravity.TOP, 0, 210)
-            toast.show()
+        val element = queue.peek()
+        // If this is a new message.
+        if (element != message) {
+            queue.add(message)
+            dequeueMessage()
         }
+    }
+
+    // Dequeue a message into the messages queue and display a message.
+    private fun dequeueMessage() {
+        Thread {
+            showMessage()
+        }.start()
+    }
+
+    // Show a message from the messages queue.
+    private fun showMessage() {
+        if (!queue.isEmpty()) {
+            val message = queue.peek()
+            if (message == null) {
+                queue.poll()
+                return
+            }
+            runOnUiThread {
+                displayToast(message)
+            }
+            sleep(4000)
+            queue.poll()
+        }
+    }
+
+    // Create a toast and display it with the given message.
+    private fun displayToast(message: String) {
+        val toast = Toast.makeText(
+            applicationContext,
+            message,
+            Toast.LENGTH_LONG
+        )
+        toast.setGravity(Gravity.TOP, 0, 210)
+        toast.show()
     }
 
     // Initials the view components
@@ -327,6 +362,9 @@ class ControlActivity : AppCompatActivity() {
         super.onStop()
         // Stop the loop that gets screenshots
         stop = true
+        while (!queue.isEmpty()) {
+            queue.poll()
+        }
     }
 
     // Add another behaviour to onResume
@@ -334,8 +372,13 @@ class ControlActivity : AppCompatActivity() {
         super.onResume()
         // Operates the loop that gets screenshots
         stop = false
-        setRetrofit()
-        displayImage()
+        try {
+            setRetrofit()
+            displayImage()
+            queue = LinkedList<String>()
+        } catch (e: Exception) {
+            displayMessage("Url Is Not Valid. Please Try Reconnecting")
+        }
     }
 
     // Add another behaviour to onStart

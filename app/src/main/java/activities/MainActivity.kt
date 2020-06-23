@@ -114,7 +114,6 @@ class MainActivity : AppCompatActivity() {
                 displayMessage("Connection Failed")
             }
         }
-
     }
 
     // Display toast with a given message
