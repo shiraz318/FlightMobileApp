@@ -37,7 +37,6 @@ class JoystickView @JvmOverloads constructor(
             innerCenter.y = value
         }
 
-
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
         textAlign = Paint.Align.CENTER
@@ -72,6 +71,13 @@ class JoystickView @JvmOverloads constructor(
         // Draw the outer circle.
         paint.color = Color.DKGRAY
         canvas.drawCircle(outerCenter.x, outerCenter.y, outerRadius, paint)
+
+        paint.color = Color.GRAY
+        canvas.drawCircle(
+            outerCenter.x, outerCenter.y, outerRadius - (innerRadius / 2),
+            paint
+        )
+
         // Draw the inner circle.
         paint.color = Color.LTGRAY
         canvas.drawCircle(innerCenter.x, innerCenter.y, innerRadius, paint)
@@ -94,13 +100,11 @@ class JoystickView @JvmOverloads constructor(
                     ((intersection2.y - lineEnd.y) * (intersection2.y - lineEnd.y))
         )
         // Checking which point is the closest.
-        val point: PointF
-        point = if (dist1 < dist2) {
+        return if (dist1 < dist2) {
             intersection1
         } else {
             intersection2
         }
-        return point
     }
 
     // Find the intersection points of the given point and the inner circle.
@@ -112,13 +116,13 @@ class JoystickView @JvmOverloads constructor(
         // Calculate A,C for line equation
         // (there is no need to calculate B because it will always be zero).
         val a = dx * dx + dy * dy
-        val c: Float = -innerRadius * innerRadius;
+        val c: Float = -innerRadius * innerRadius
         // Delta for finding solutions.
-        val delta = -4 * a * c;
+        val delta = -4 * a * c
         // Two solutions.
-        val t = ((sqrt(delta)) / (2 * a));
-        val intersection1 = PointF(outerCenter.x + t * dx, outerCenter.y + t * dy);
-        val intersection2 = PointF(outerCenter.x - t * dx, outerCenter.y - t * dy);
+        val t = ((sqrt(delta)) / (2 * a))
+        val intersection1 = PointF(outerCenter.x + t * dx, outerCenter.y + t * dy)
+        val intersection2 = PointF(outerCenter.x - t * dx, outerCenter.y - t * dy)
         return arrayOf(intersection1, intersection2)
     }
 
@@ -126,7 +130,7 @@ class JoystickView @JvmOverloads constructor(
     private fun updatePosition(x: Float, y: Float): PointF {
         var isOut = false
         if (y < outerCenter.y - outerRadius + innerRadius) {
-            isOut = true;
+            isOut = true
         } else if (y > outerRadius + outerCenter.y - innerRadius) {
             isOut = true
         }
@@ -190,8 +194,14 @@ class JoystickView @JvmOverloads constructor(
         }
     }
 
+    override fun performClick(): Boolean {
+        return super.performClick()
+    }
+
+
     // Happens when user touch the inner circle of the joystick.
     override fun onTouchEvent(event: MotionEvent?): Boolean {
+        performClick()
         if (event == null) {
             return true
         }

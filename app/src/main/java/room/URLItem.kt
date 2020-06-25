@@ -12,6 +12,4 @@ class URLItem(
     val url: String,
     @ColumnInfo(name = "position")
     val position: Int = 0
-) {
-
-}
+) 

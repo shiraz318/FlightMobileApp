@@ -75,13 +75,8 @@ class MainActivity : AppCompatActivity() {
                 object : RecyclerItemClickListener.OnItemClickListener {
                     override fun onItemClick(view: View, position: Int) {
                         val url = urlViewModel.getUrlByPosition(position)
-//                        if (url == null) {
-//                            displayMessage("Error Getting The Required URL")
-//                        } else {
                         // Display the given url
                         inputUrl.setText(url)
-                        //urlViewModel.initPosition(url)
-                        // }
                     }
 
                     override fun onItemLongClick(view: View?, position: Int) {
@@ -92,8 +87,8 @@ class MainActivity : AppCompatActivity() {
 
     // Connects to the given url address
     private suspend fun connectToServer(url: String) {
-        setRetrofit(url)
         try {
+            setRetrofit(url)
             val api = retrofit.create(FlightApiService::class.java)
             val response: Response<ResponseBody> = api.getScreenshotAsync()
             if (response.isSuccessful) {
@@ -133,7 +128,7 @@ class MainActivity : AppCompatActivity() {
         if (TextUtils.isEmpty(inputUrl.text)) {
             displayMessage("URL Input Is Empty. Please Enter URL")
         } else {
-            var url = inputUrl.text.toString()
+            val url = inputUrl.text.toString()
             // Update the url list
             val urlItem = URLItem(url, 0)
             if (urlViewModel.alreadyExists(url) == 1) {
@@ -150,10 +145,6 @@ class MainActivity : AppCompatActivity() {
             // url = "http://10.0.2.2:64673"
             uiScope.launch { connectToServer(url) }
 
-//            // just for debug - delete it.
-//            val intent = Intent(this@MainActivity, ControlActivity::class.java)
-//            intent.putExtra("Url", url)
-//            startActivity(intent)
         }
     }
 
@@ -182,10 +173,3 @@ class MainActivity : AppCompatActivity() {
     }
 
 }
-
-
-// post.
-//
-//
-// may be not need thread in the manager and use async write and read, and check all the messages before rerutning ok.
-// room need to be syncroni and all ui things need to be synchroni including get and post. may be replan runonuiThread to run on new thread.

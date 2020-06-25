@@ -2,9 +2,7 @@ package activities
 
 import android.graphics.BitmapFactory
 import android.os.Bundle
-import android.util.Log
 import android.view.Gravity
-import android.view.animation.AnimationUtils
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -74,7 +72,7 @@ class ControlActivity : AppCompatActivity() {
 
     // Show a message from the messages queue.
     private fun showMessage() {
-        if (!queue.isEmpty()) {
+        if (!queue.isEmpty() && !stop) {
             val message = queue.peek()
             if (message == null) {
                 queue.poll()
@@ -179,38 +177,30 @@ class ControlActivity : AppCompatActivity() {
     // When the joystick moves- check if the movement was significant
     private fun onChangeJoystick() {
         val data = JoystickData(
-            joystickView.getElevator(), joystickView.getAileron(),
-            joystickView.getOuterRadius(), joystickView.getInnerRadius(), joystickView.getCenterX(),
-            joystickView.getCenterY()
+            joystickView.getElevator(), joystickView.getAileron(), joystickView.getOuterRadius(),
+            joystickView.getInnerRadius(), joystickView.getCenterX(), joystickView.getCenterY()
         )
         val commandElevator: Float
         val commandAileron: Float
         val range: Float = (data.outerRadius - data.innerRadius) * 2
         var isChangedEnough = false
-        // Case of center
         if (checkIfCenter(data.newAileron, data.newElevator, data.centerX, data.centerY)) {
             return
         }
         // Movement should be bigger then 1%
         if (changeEnough(data.newElevator, elevator, range)) {
             isChangedEnough = true
-            // The new value
             elevator = data.newElevator
-            // number between -1 to 1
             commandElevator = normalizeValue(data.newElevator, data.centerY, range)
         } else {
-            // number between -1 to 1
             commandElevator = normalizeValue(elevator, data.centerY, range)
         }
         // Movement should be bigger then 1%
         if (changeEnough(data.newAileron, aileron, range)) {
             isChangedEnough = true
-            // The new value
             aileron = data.newAileron
-            // number between -1 to 1
             commandAileron = normalizeValue(data.newAileron, data.centerX, range)
         } else {
-            // number between -1 to 1
             commandAileron = normalizeValue(aileron, data.centerX, range)
         }
         // Only if was a change
@@ -357,25 +347,26 @@ class ControlActivity : AppCompatActivity() {
         }
     }
 
-    // Add another behaviour to onStop
-    override fun onStop() {
-        super.onStop()
+    // Add another behaviour to onDestroyed
+    override fun onDestroy() {
+        super.onDestroy()
         // Stop the loop that gets screenshots
         stop = true
-        while (!queue.isEmpty()) {
-            queue.poll()
-        }
+//        queue = LinkedList()
+//        while (!queue.isEmpty()) {
+//            queue.poll()
+//        }
     }
 
     // Add another behaviour to onResume
     override fun onResume() {
+        queue = LinkedList()
         super.onResume()
         // Operates the loop that gets screenshots
         stop = false
         try {
             setRetrofit()
             displayImage()
-            queue = LinkedList<String>()
         } catch (e: Exception) {
             displayMessage("Url Is Not Valid. Please Try Reconnecting")
         }
