@@ -8,7 +8,7 @@ The control screen  is divided to 2 part:
 **Scrren Shot**- display the current view froom the cockpit.  
 **Joystick and sliders**- controls the plane.  
 
-### how to use  
+### How to use  
 1. Open the program in the android studio app and run it.  
 2. Run the intermediary server according to the instructions in the FlightMobileServer reposetory.  
 
