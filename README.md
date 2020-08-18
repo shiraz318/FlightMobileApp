@@ -14,7 +14,7 @@ The control screen  is divided to 2 part:
 
 
 #### Versioning
-We used [Github](https://github.com/shiraz318/ex4) for version control
+We used [Github](https://github.com/shiraz318/FlightMobileApp) for version control
 
 #### Authors:
 Shiraz Berger and Nili Cohen
