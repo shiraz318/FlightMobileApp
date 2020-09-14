@@ -1,7 +1,7 @@
 # FlightMobileApp  
 ## Overview  
 In this project we created an android app.  
-The app conects to an intermediary server which communicates with a flight simulator.  
+The app connects to an intermediary server which communicates with a flight simulator.  
 In the main screen the user can type an url address of the server or choose a url address from a list of previous used addresses.  
 After pressing the "Connect" button, the control screen will be shown.  
 The control screen  is divided to 2 part:  
