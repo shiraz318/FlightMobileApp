@@ -57,7 +57,7 @@ abstract class URLRoomDatabase : RoomDatabase() {
 
         suspend fun populateDatabase(urlDao: URLDao) {
             // Delete all content here.
-            // urlDao.deleteAll()
+            //urlDao.deleteAll()
             urlDao.getUrlsOrderedByPosition()
         }
     }

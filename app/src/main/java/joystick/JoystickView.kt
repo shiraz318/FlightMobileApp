@@ -54,10 +54,11 @@ class JoystickView @JvmOverloads constructor(
 
     // Return the minimum value from the given values.
     private fun min(num1: Double, num2: Double): Double {
-        if (num1 < num2) {
-            return num1
-        }
-        return num2
+        return if (num1 < num2) num1 else num2
+//        if (num1 < num2) {
+//            return num1
+//        }
+//        return num2
     }
 
     init {
@@ -100,11 +101,12 @@ class JoystickView @JvmOverloads constructor(
                     ((intersection2.y - lineEnd.y) * (intersection2.y - lineEnd.y))
         )
         // Checking which point is the closest.
-        return if (dist1 < dist2) {
-            intersection1
-        } else {
-            intersection2
-        }
+        return if (dist1 < dist2) intersection1 else intersection2
+//        return if (dist1 < dist2) {
+//            intersection1
+//        } else {
+//            intersection2
+//        }
     }
 
     // Find the intersection points of the given point and the inner circle.
@@ -139,9 +141,8 @@ class JoystickView @JvmOverloads constructor(
         } else if (x > outerRadius + outerCenter.x - innerRadius) {
             isOut = true
         }
-        if (!isOut) {
-            return PointF(x, y)
-        }
+        if (!isOut) return PointF(x, y)
+
         return closestIntersection(PointF(x, y))
     }
 
@@ -202,9 +203,8 @@ class JoystickView @JvmOverloads constructor(
     // Happens when user touch the inner circle of the joystick.
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         performClick()
-        if (event == null) {
-            return true
-        }
+        if (event == null) return true
+
         when (event.action) {
             MotionEvent.ACTION_DOWN -> return true
             MotionEvent.ACTION_MOVE -> touchMove(event.x, event.y)
